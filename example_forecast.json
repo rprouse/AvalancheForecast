@@ -1,0 +1,312 @@
+{
+  "id": "5f89e87c-4141-45a2-a058-f2aae3d55634_c87f6ddf41da141497bf9ccc5dcbb0e51f31f4c79b2de242477137d00b3a0ff3",
+  "slug": "5f89e87c-4141-45a2-a058-f2aae3d55634_c87f6ddf41da141497bf9ccc5dcbb0e51f31f4c79b2de242477137d00b3a0ff3",
+  "url": "https://avalanche.ca/forecasts/5f89e87c-4141-45a2-a058-f2aae3d55634_c87f6ddf41da141497bf9ccc5dcbb0e51f31f4c79b2de242477137d00b3a0ff3",
+  "type": "avalancheforecast",
+  "area": {
+    "id": "c87f6ddf41da141497bf9ccc5dcbb0e51f31f4c79b2de242477137d00b3a0ff3",
+    "name": "c87f6ddf41da141497bf9ccc5dcbb0e51f31f4c79b2de242477137d00b3a0ff3",
+    "bbox": null
+  },
+  "report": {
+    "id": "5f89e87c-4141-45a2-a058-f2aae3d55634_c87f6ddf41da141497bf9ccc5dcbb0e51f31f4c79b2de242477137d00b3a0ff3",
+    "forecaster": "Avalanche Canada",
+    "dateIssued": "2026-01-08T00:00:00Z",
+    "validUntil": "2026-01-09T00:00:00Z",
+    "timezone": "America/Vancouver",
+    "title": "Akamina-Flathead-Lizard",
+    "highlights": "<p>Storm slabs remain reactive to human triggers and are likely more reactive where snow has been wind affected.</p><p>Assess the snow as you travel, and back off if you see signs of instability.</p>",
+    "confidence": {
+      "rating": {
+        "value": "moderate",
+        "display": "Moderate"
+      },
+      "statements": [
+        "Uncertainty is due to how quickly the snowpack will recover and gain strength."
+      ]
+    },
+    "summaries": [
+      {
+        "type": {
+          "value": "avalanche-summary",
+          "display": "Avalanche Summary"
+        },
+        "content": " <p>On Wednesday explosives triggered storm slab avalanches to size 1.5.</p><p>A surface hoar layer can be found down 60 cm on Wednesday the South Rockies Field Team had some test results indicating this layer is possible to human trigger. </p>"
+      },
+      {
+        "type": {
+          "value": "snowpack-summary",
+          "display": "Snowpack Summary"
+        },
+        "content": " <p>Recent accumulated snow has been redistributed by strong southwest wind. This overlies wind affected snow at upper elevations and settling snow at treeline. A spotty surface hoar layer can be found in sheltered terrain features.</p><p>A melt-freeze crust that formed Dec 24 can be found down 40 to 60 cm from the surface at elevations around 2000 m and below.</p><p>The mid and lower snowpack is characterized by multiple crusts, with moist snow persisting near the base in some areas.</p><p>Snow depths at treeline generally range from approximately 100 to 220 cm.</p>"
+      },
+      {
+        "type": {
+          "value": "weather-summary",
+          "display": "Weather Summary"
+        },
+        "content": " <p><strong>Wednesday Night</strong><br>Mostly cloudy. 1 to 5 cm of snow. 40 km/h southwest ridgetop wind. Treeline temperature -9 °C. <br><br><strong>Thursday</strong><br>Mostly cloudy. 3 to 5 cm of snow. 40 km/h west ridgetop wind. Treeline temperature -9 °C. <br><br><strong>Friday</strong><br>Mix of sun and clouds. 1 to 3 cm of snow. 50 km/h west ridgetop wind. Treeline temperature -9 °C. <br><br><strong>Saturday</strong><br>Mix of sun and clouds. 1 cm of snow. 60 km/h west ridgetop wind. Treeline temperature -4 °C. F<br></p> <p>More details can be found in the <a href =\"https://www.avalanche.ca/weather/forecast\">Mountain Weather Forecast</a>.</p>"
+      }
+    ],
+    "dangerRatings": [
+      {
+        "date": {
+          "value": "2026-01-09T00:00:00Z",
+          "display": "Thursday"
+        },
+        "ratings": {
+          "alp": {
+            "display": "Alpine",
+            "rating": {
+              "value": "considerable",
+              "display": "3 - Considerable"
+            }
+          },
+          "tln": {
+            "display": "Treeline",
+            "rating": {
+              "value": "moderate",
+              "display": "2 - Moderate"
+            }
+          },
+          "btl": {
+            "display": "Below Treeline",
+            "rating": {
+              "value": "low",
+              "display": "1 - Low"
+            }
+          }
+        }
+      },
+      {
+        "date": {
+          "value": "2026-01-10T00:00:00Z",
+          "display": "Friday"
+        },
+        "ratings": {
+          "alp": {
+            "display": "Alpine",
+            "rating": {
+              "value": "moderate",
+              "display": "2 - Moderate"
+            }
+          },
+          "tln": {
+            "display": "Treeline",
+            "rating": {
+              "value": "moderate",
+              "display": "2 - Moderate"
+            }
+          },
+          "btl": {
+            "display": "Below Treeline",
+            "rating": {
+              "value": "low",
+              "display": "1 - Low"
+            }
+          }
+        }
+      },
+      {
+        "date": {
+          "value": "2026-01-11T00:00:00Z",
+          "display": "Saturday"
+        },
+        "ratings": {
+          "alp": {
+            "display": "Alpine",
+            "rating": {
+              "value": "moderate",
+              "display": "2 - Moderate"
+            }
+          },
+          "tln": {
+            "display": "Treeline",
+            "rating": {
+              "value": "moderate",
+              "display": "2 - Moderate"
+            }
+          },
+          "btl": {
+            "display": "Below Treeline",
+            "rating": {
+              "value": "low",
+              "display": "1 - Low"
+            }
+          }
+        }
+      }
+    ],
+    "problems": [
+      {
+        "type": {
+          "value": "stormslab",
+          "display": "Storm slab"
+        },
+        "comment": "<p>Ongoing flurries and moderate winds will continue to keep storm slabs reactive to human-triggers especially where a surface hoar layer can be found. Triggering this layer that is 60 cm down is more likely in sheltered terrain features.</p>",
+        "factors": [
+          {
+            "type": {
+              "value": "elevation",
+              "display": "What Elevation?"
+            },
+            "graphic": {
+              "id": "elevation-1-1-1_en",
+              "url": "https://assets.avalanche.ca/images/Elevation/Elevation-1-1-1_EN.png",
+              "alt": " Below treeline, Treeline, Alpine"
+            }
+          },
+          {
+            "type": {
+              "value": "aspect",
+              "display": "Which Slopes?"
+            },
+            "graphic": {
+              "id": "aspect-1-1-1-1-1-1-1-1_en",
+              "url": "https://assets.avalanche.ca/images/Compass/compass-1-1-1-1-1-1-1-1_EN.png",
+              "alt": " North, Northeast, East, Southeast, south, Southwest, West, Northwest"
+            }
+          },
+          {
+            "type": {
+              "value": "likelihood",
+              "display": "Chances of Avalanches?"
+            },
+            "graphic": {
+              "id": "likelihood-possible_en",
+              "url": "https://assets.avalanche.ca/images/Likelihood/Likelihood-3_EN.png",
+              "alt": " Possible"
+            }
+          },
+          {
+            "type": {
+              "value": "size",
+              "display": "Expected Size?"
+            },
+            "graphic": {
+              "id": "size-2-4_en",
+              "url": "https://assets.avalanche.ca/images/size/Size-2-4_EN.png",
+              "alt": " Small - Large"
+            }
+          }
+        ],
+        "data": {
+          "elevations": [
+            {
+              "value": "tln",
+              "display": "Treeline"
+            },
+            {
+              "value": "alp",
+              "display": "Alpine"
+            },
+            {
+              "value": "btl",
+              "display": "Below Treeline"
+            }
+          ],
+          "aspects": [
+            {
+              "value": "e",
+              "display": "East"
+            },
+            {
+              "value": "nw",
+              "display": "Northwest"
+            },
+            {
+              "value": "s",
+              "display": "s"
+            },
+            {
+              "value": "w",
+              "display": "West"
+            },
+            {
+              "value": "se",
+              "display": "Southeast"
+            },
+            {
+              "value": "sw",
+              "display": "Southwest"
+            },
+            {
+              "value": "n",
+              "display": "North"
+            },
+            {
+              "value": "ne",
+              "display": "Northeast"
+            }
+          ],
+          "aspectElevations": [
+            "n_tln",
+            "n_alp",
+            "ne_tln",
+            "ne_alp",
+            "e_tln",
+            "e_alp",
+            "se_tln",
+            "se_alp",
+            "nw_tln",
+            "nw_alp",
+            "s_alp",
+            "s_tln",
+            "sw_tln",
+            "sw_alp",
+            "w_tln",
+            "w_alp",
+            "w_btl",
+            "nw_btl",
+            "n_btl",
+            "ne_btl",
+            "e_btl",
+            "se_btl",
+            "s_btl",
+            "sw_btl"
+          ],
+          "likelihood": {
+            "value": "possible",
+            "display": "possible"
+          },
+          "expectedSize": {
+            "min": "1.5",
+            "max": "2.5"
+          }
+        }
+      }
+    ],
+    "terrainAndTravelAdvice": [
+      "Surface hoar distribution is highly variable. Avoid generalizing your observations.",
+      "Be careful with wind-loaded pockets, especially near ridge crests and rollovers.",
+      "Keep your guard up as storm slabs may remain sensitive to human triggering."
+    ],
+    "message": null,
+    "season": null,
+    "comment": null,
+    "isFullTranslation": false
+  },
+  "version": 1,
+  "owner": {
+    "value": "avalanche-canada",
+    "display": "Avalanche Canada",
+    "isExternal": false,
+    "url": "https://avalanche.ca/en"
+  },
+  "media": {
+    "images": [
+      {
+        "id": "8ad4cb24-da99-4ae4-8157-ba034b76bb1f",
+        "url": "http://res.cloudinary.com/forecasts/image/upload/v1767830139/prod/avcan/a4lnmvmw7iwcurfegrh7.jpg",
+        "width": 1247,
+        "height": 1663,
+        "credit": "South Rockies Field Team",
+        "caption": "<p>Test result on a surface hoar layer in a sheltered area down </p>",
+        "tag": "snowpack",
+        "isArchived": false,
+        "altText": "Test result on a surface hoar layer in a sheltered area",
+        "dateTaken": "2026-01-07T23:55:46.645Z"
+      }
+    ]
+  }
+}
