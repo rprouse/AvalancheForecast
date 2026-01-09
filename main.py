@@ -1,49 +1,53 @@
 import urequests
 
 from wifi import wifi_connect
-from ili9341 import color565
-from display import initialize_display, load_display_fonts
 
-def run_font_demo():
-    display = initialize_display()
-    fonts = load_display_fonts()
+from ili934xnew import ILI9341, color565
+from machine import Pin, SPI
+from machine import idle, Pin, SPI  # type: ignore
+import os
+import glcdfont
+import tt14
+import tt24
+import tt32
 
-    text_heights = [11, 9, 43, 8, 24, 24, 8]  # Heights of each line
-    num_lines = len(text_heights)  # Number of lines
-    total_text_height = sum(text_heights)  # Total height of all text lines
-    # Calculate available space to distribute
-    available_height = display.height - total_text_height
-    # Calculate the vertical gap between each line
-    gap_between_lines = available_height // (num_lines + 1)
-    # Start drawing the text at the first position
+SCR_WIDTH = const(320)
+SCR_HEIGHT = const(240)
+SCR_ROT = const(3)
+CENTER_Y = int(SCR_WIDTH/2)
+CENTER_X = int(SCR_HEIGHT/2)
 
-    display.clear()
+print(os.uname())
+TFT_CLK_PIN = const(6)
+TFT_MOSI_PIN = const(7)
+TFT_MISO_PIN = const(4)
 
-    # Calculate available horizontal space
-    available_width = display.width - total_text_height
-    # Calculate the horizontal gap between each line
-    gap_between_lines = available_width // (num_lines + 1)
-    # Starting X position for each line
-    x_position = gap_between_lines
-    # Draw each text line with adjusted X positions
-    display.draw_text(x_position, display.height - 1, 'Arcade Pix 9x11', fonts[0], color565(255, 0, 0), landscape=True)
-    x_position += text_heights[0] + gap_between_lines
-
-    display.draw_text(x_position, display.height - 1, 'Bally 7x9', fonts[1], color565(0, 255, 0), landscape=True)
-    x_position += text_heights[1] + gap_between_lines
-
-    display.draw_text(x_position, display.height - 1, 'Dejavu 24x43', fonts[2], color565(0, 0, 255), landscape=True)
-    x_position += text_heights[2] + gap_between_lines
-
-    display.draw_text(x_position, display.height - 1, 'Fixed Font 5x8', fonts[3], color565(255, 0, 255), landscape=True)
-    x_position += text_heights[3] + gap_between_lines
-
-    display.draw_text(x_position, display.height - 1, 'Unispace 12x24', fonts[4], color565(255, 128, 0), landscape=True)
-    x_position += text_heights[4] + gap_between_lines
-
-    display.draw_text(x_position, display.height - 1, 'Wendy 7x8', fonts[5], color565(255, 0, 128), landscape=True)
+TFT_CS_PIN = const(13)
+TFT_RST_PIN = const(14)
+TFT_DC_PIN = const(15)
 
 wlan = wifi_connect()
+
+spi = SPI(
+    0,
+    baudrate=40000000,
+    miso=Pin(TFT_MISO_PIN),
+    mosi=Pin(TFT_MOSI_PIN),
+    sck=Pin(TFT_CLK_PIN))
+print(spi)
+
+display = ILI9341(
+    spi,
+    cs=Pin(TFT_CS_PIN),
+    dc=Pin(TFT_DC_PIN),
+    rst=Pin(TFT_RST_PIN),
+    w=SCR_WIDTH,
+    h=SCR_HEIGHT,
+    r=SCR_ROT)
+
+display.erase()
+display.set_pos(0,0)
+display.set_font(tt14)
 
 # Fetch avalanche forecast data from the Avalanche Canada API
 response = urequests.get("https://api.avalanche.ca/forecasts/en/products/point?lat=49.516324&long=-115.068756")
@@ -52,18 +56,19 @@ print("Response status:", response.status_code)
 if response.status_code == 200:
     data = response.json()
     title = data['report']['title']
-    print("Report title:", title)
-    print()
+    # display.print(title)
 
     # Display danger ratings
     for danger_rating in data['report']['dangerRatings']:
-        print(danger_rating['date']['display'])
+        display.set_color(color565(0, 0, 255), color565(0, 0, 0))
+        display.print(danger_rating['date']['display'])
         ratings = danger_rating['ratings']
-        print("  " + ratings['alp']['display'] + ": " + ratings['alp']['rating']['display'])
-        print("  " + ratings['tln']['display'] + ": " + ratings['tln']['rating']['display'])
-        print("  " + ratings['btl']['display'] + ": " + ratings['btl']['rating']['display'])
-        print()
-else:
-    print("Failed to fetch forecast data")
 
-run_font_demo()
+        display.set_color(color565(0, 255, 0), color565(0, 0, 0))
+        display.print("  " + ratings['alp']['display'] + ": " + ratings['alp']['rating']['display'])
+        display.print("  " + ratings['tln']['display'] + ": " + ratings['tln']['rating']['display'])
+        display.print("  " + ratings['btl']['display'] + ": " + ratings['btl']['rating']['display'])
+        display.print("")
+else:
+    display.print("Failed to fetch forecast data")
+

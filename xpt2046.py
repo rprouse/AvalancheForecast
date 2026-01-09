@@ -1,6 +1,5 @@
 """XPT2046 Touch module."""
 from time import sleep
-from micropython import const  # type: ignore
 
 
 class Touch(object):
@@ -18,9 +17,8 @@ class Touch(object):
 
     def __init__(self, spi, cs, int_pin=None, int_handler=None,
                  width=240, height=320,
-                 x_min=100, x_max=1962, y_min=100, y_max=1900):
+                 x_min=142, x_max=1900, y_min=180, y_max=1849):
         """Initialize touch screen controller.
-
         Args:
             spi (Class Spi):  SPI interface for OLED
             cs (Class Pin):  Chip select pin
@@ -109,7 +107,6 @@ class Touch(object):
 
     def raw_touch(self):
         """Read raw X,Y touch values.
-
         Returns:
             tuple(int, int): X, Y
         """
@@ -122,7 +119,6 @@ class Touch(object):
 
     def send_command(self, command):
         """Write command to XT2046 (MicroPython).
-
         Args:
             command (byte): XT2046 command code.
         Returns:
