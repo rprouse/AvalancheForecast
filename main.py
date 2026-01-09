@@ -13,7 +13,7 @@ import tt32
 
 SCR_WIDTH = const(320)
 SCR_HEIGHT = const(240)
-SCR_ROT = const(3)
+SCR_ROT = const(2)
 CENTER_Y = int(SCR_WIDTH/2)
 CENTER_X = int(SCR_HEIGHT/2)
 
@@ -56,14 +56,18 @@ print("Response status:", response.status_code)
 if response.status_code == 200:
     data = response.json()
     title = data['report']['title']
-    # display.print(title)
+    display.set_font(tt14)
+    display.set_color(color565(0, 255, 255), color565(0, 0, 0))
+    display.print(title + "\n")
 
     # Display danger ratings
     for danger_rating in data['report']['dangerRatings']:
+        display.set_font(tt24)
         display.set_color(color565(0, 0, 255), color565(0, 0, 0))
         display.print(danger_rating['date']['display'])
         ratings = danger_rating['ratings']
 
+        display.set_font(tt14)
         display.set_color(color565(0, 255, 0), color565(0, 0, 0))
         display.print("  " + ratings['alp']['display'] + ": " + ratings['alp']['rating']['display'])
         display.print("  " + ratings['tln']['display'] + ": " + ratings['tln']['rating']['display'])
