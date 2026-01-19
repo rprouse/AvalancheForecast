@@ -10,6 +10,7 @@ import os
 WHITE = color565(0xFF, 0xFF, 0xFF)
 GRAY = color565(0xF8, 0xF8, 0xF8)
 BLACK = color565(0x00, 0x00, 0x00)
+GREEN = color565(0x00, 0xFF, 0x00)
 ALP = WHITE
 TLN = color565(0xC1, 0xD8, 0x31)
 BTL = color565(0x6E, 0xA4, 0x69)
@@ -109,15 +110,22 @@ def display_forecast(tft, today, y):
 
 def main():
     print(os.uname())
-    wlan = wifi_connect()
     tft = initialize_display()
 
+    print("Connecting to WiFi...")
+    tft.text("Connecting to WiFi...", 10, 10, GREEN)
+
+    wlan = wifi_connect()
+
     # Fetch avalanche forecast data from the Avalanche Canada API
+    print("Getting Avalanche Forecast...")
+    tft.text("Getting Avalanche Forecast...", 10, 22, GREEN)
+
     response = None
     try:
         response = urequests.get("https://api.avalanche.ca/forecasts/en/products/point?lat=49.516324&long=-115.068756")
+        tft.fill(BLACK)
         print("Response status:", response.status_code)
-
         if response.status_code == 200:
             data = response.json()
             title = data['report']['title']
