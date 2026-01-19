@@ -1,11 +1,13 @@
 import urequests
 
-from wifi import wifi_connect
+from wifi import connect_wifi
 
 from tft_spi import ILI9341, color565
 import tt7, tt14, tt24, tt32
 from machine import Pin, SPI
 import os
+
+from secrets import SSID, PASSWORD
 
 # Common colors
 WHITE = color565(0xFF, 0xFF, 0xFF)
@@ -50,12 +52,12 @@ TFT_DC_PIN = const(15)
 def initialize_display():
     """
     Initialize the ILI9341 TFT display and clear the screen to black.
-    
+
     Configures the SPI bus and control pins, instantiates and initializes the ILI9341 display driver, and clears the display.
-    
+
     Side effects:
         Prints the configured SPI object to the console.
-    
+
     Returns:
         ILI9341: An initialized TFT display object ready for drawing.
     """
@@ -80,12 +82,12 @@ def initialize_display():
 def display_forecast(tft, today, y):
     """
     Render the forecast date and three danger-rating rows (Alpine, Treeline, Below Treeline) onto the provided TFT display and return the next vertical drawing position.
-    
+
     Parameters:
         tft: TFT display instance used for drawing (must support text, set_font, fill_rect).
         today (dict): Forecast data for a single day; expected to contain 'date'->'display' and 'ratings'->{'alp','tln','btl'} with each having 'rating'->{'value','display'}.
         y (int): Starting vertical pixel coordinate for rendering.
-    
+
     Returns:
         int: The vertical pixel coordinate to continue drawing after this block.
     """
@@ -125,7 +127,7 @@ def display_forecast(tft, today, y):
 def main():
     """
     Initialize hardware, connect to WiFi, fetch an avalanche point forecast, and render danger ratings on the TFT display.
-    
+
     Displays progress messages on the TFT while connecting to WiFi and fetching data. On a successful HTTP 200 response, parses the Avalanche Canada report and renders each danger rating using display_forecast. On failure or exception, writes an error message to the display. Ensures any opened HTTP response is closed.
     """
     print(os.uname())
@@ -134,7 +136,7 @@ def main():
     print("Connecting to WiFi...")
     tft.text("Connecting to WiFi...", 10, 10, GREEN)
 
-    wlan = wifi_connect()
+    wlan = connect_wifi(SSID, PASSWORD, timeout_s=20, country="CA", verbose=True)
 
     # Fetch avalanche forecast data from the Avalanche Canada API
     print("Getting Avalanche Forecast...")
