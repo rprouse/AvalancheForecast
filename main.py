@@ -46,6 +46,17 @@ TFT_RST_PIN = const(14)
 TFT_DC_PIN = const(15)
 
 def initialize_display():
+    """Initialize and return the TFT display.
+
+    Configures the SPI bus and control pins, creates an ILI9341 TFT display
+    instance, initializes the panel, and clears the screen to black.
+
+    Side effects:
+        Prints the configured SPI object to the console for debugging.
+
+    Returns:
+        ILI9341: An initialized TFT display object ready for drawing.
+    """
     spi = SPI(
         0,
         baudrate=40000000,
