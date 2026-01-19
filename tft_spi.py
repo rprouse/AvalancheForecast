@@ -666,6 +666,26 @@ class ILI9341(TFTBase):
 
 
 class ST7796S(TFTBase):
+    """
+    Driver for ST7796S TFT display controller (320x480 resolution).
+
+    The ST7796S is commonly used in 3.5" and 4.0" TFT LCD modules with
+    a native resolution of 320x480 pixels in RGB565 color mode.
+
+    Key differences from ILI9341:
+    - Higher resolution: 320x480 vs 240x320
+    - Requires Command Set Control (CSCON) unlock sequence during
+      initialization (0xF0 commands) for proper module compatibility
+    - Uses extended command set initialization common to ST77xx family
+
+    Initialization sequence includes:
+    1. Hardware/software reset
+    2. Command Set Control unlock (0xF0 register writes)
+    3. Sleep out, color mode, MADCTL, display on
+    4. Optional backlight control
+
+    Usage is identical to ILI9341 once initialized.
+    """
     def __init__(self, spi, cs, dc, rst=None, bl=None,
                  rotation=0, bgr=True, invert=False):
         super().__init__(spi, cs, dc, rst=rst, bl=bl,
