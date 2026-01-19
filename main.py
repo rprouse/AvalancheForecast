@@ -48,14 +48,14 @@ TFT_RST_PIN = const(14)
 TFT_DC_PIN = const(15)
 
 def initialize_display():
-    """Initialize and return the TFT display.
-
-    Configures the SPI bus and control pins, creates an ILI9341 TFT display
-    instance, initializes the panel, and clears the screen to black.
-
+    """
+    Initialize the ILI9341 TFT display and clear the screen to black.
+    
+    Configures the SPI bus and control pins, instantiates and initializes the ILI9341 display driver, and clears the display.
+    
     Side effects:
-        Prints the configured SPI object to the console for debugging.
-
+        Prints the configured SPI object to the console.
+    
     Returns:
         ILI9341: An initialized TFT display object ready for drawing.
     """
@@ -78,6 +78,17 @@ def initialize_display():
     return tft
 
 def display_forecast(tft, today, y):
+    """
+    Render the forecast date and three danger-rating rows (Alpine, Treeline, Below Treeline) onto the provided TFT display and return the next vertical drawing position.
+    
+    Parameters:
+        tft: TFT display instance used for drawing (must support text, set_font, fill_rect).
+        today (dict): Forecast data for a single day; expected to contain 'date'->'display' and 'ratings'->{'alp','tln','btl'} with each having 'rating'->{'value','display'}.
+        y (int): Starting vertical pixel coordinate for rendering.
+    
+    Returns:
+        int: The vertical pixel coordinate to continue drawing after this block.
+    """
     tft.set_font(tt14)
     tft.text(today['date']['display'], 10, y, GRAY)
     tft.set_font(tt7)
@@ -112,6 +123,11 @@ def display_forecast(tft, today, y):
     return y + 24
 
 def main():
+    """
+    Initialize hardware, connect to WiFi, fetch an avalanche point forecast, and render danger ratings on the TFT display.
+    
+    Displays progress messages on the TFT while connecting to WiFi and fetching data. On a successful HTTP 200 response, parses the Avalanche Canada report and renders each danger rating using display_forecast. On failure or exception, writes an error message to the display. Ensures any opened HTTP response is closed.
+    """
     print(os.uname())
     tft = initialize_display()
 
