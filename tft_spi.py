@@ -338,23 +338,22 @@ class TFTBase:
                 err += 2 * (y - x) + 1
 
     # --- Text rendering ---
-    def text(self, s, x, y, color, bg=None, scale=1, spacing=1):
+    def text(self, s, x, y, color, bg=None, spacing=1):
         """
         Draw ASCII text using current font.
         bg=None means transparent background.
-        scale=1..N scales glyph pixels.
         """
         font_height = self._font.height()
         cx = x
         for ch in s:
             if ch == "\n":
                 cx = x
-                y += (font_height * scale) + 2
+                y += font_height + 2
                 continue
-            char_width = self._draw_char(ch, cx, y, color, bg, scale)
+            char_width = self._draw_char(ch, cx, y, color, bg)
             cx += char_width + spacing
 
-    def _draw_char(self, ch, x, y, color, bg, scale):
+    def _draw_char(self, ch, x, y, color, bg):
         # Get glyph data and width from font
         glyph, char_width = self._font.get_ch(ch)
         font_height = self._font.height()
@@ -362,8 +361,8 @@ class TFTBase:
         # Calculate bytes per column (height / 8, rounded up)
         bytes_per_col = (font_height + 7) // 8
 
-        # Fast path: scale==1 and bg is not None => stream a tile (incl spacing row/col)
-        if scale == 1 and bg is not None:
+        # Fast path: bg is not None => stream a tile (incl spacing row/col)
+        if bg is not None:
             w, h = char_width + 1, font_height + 1
             self._set_window(x, y, x + w - 1, y + h - 1)
             # Build a small RGB565 buffer for the tile
@@ -390,9 +389,9 @@ class TFTBase:
                             buf[p + 1] = fg_lo
 
             self._data(buf)
-            return char_width * scale
+            return char_width
 
-        # General path: plot scaled pixels (transparent or scaled)
+        # General path: plot pixels (transparent background supported)
         for col in range(char_width):
             for row in range(font_height):
                 byte_idx = row // 8
@@ -404,25 +403,15 @@ class TFTBase:
                     on = bits & (1 << bit_idx)
 
                 if on:
-                    if scale == 1:
-                        self.pixel(x + col, y + row, color)
-                    else:
-                        self.fill_rect(x + col * scale, y + row * scale, scale, scale, color)
+                    self.pixel(x + col, y + row, color)
                 elif bg is not None:
-                    if scale == 1:
-                        self.pixel(x + col, y + row, bg)
-                    else:
-                        self.fill_rect(x + col * scale, y + row * scale, scale, scale, bg)
+                    self.pixel(x + col, y + row, bg)
         # Optional spacing column
         if bg is not None:
-            if scale == 1:
-                self.vline(x + char_width, y, font_height, bg)
-                self.hline(x, y + font_height, char_width + 1, bg)
-            else:
-                self.fill_rect(x + char_width * scale, y, scale, font_height * scale, bg)
-                self.fill_rect(x, y + font_height * scale, (char_width + 1) * scale, scale, bg)
+            self.vline(x + char_width, y, font_height, bg)
+            self.hline(x, y + font_height, char_width + 1, bg)
 
-        return char_width * scale
+        return char_width
 
     # --- Sprites ---
     def blit_rgb565(self, x, y, w, h, data, key=None):
