@@ -38,7 +38,17 @@ _MADCTL_BGR = 0x08
 _COLMOD_16BIT = 0x55
 
 def color565(r, g, b):
-    """Convert 8-bit RGB to RGB565 (int 0..65535)."""
+    """
+    Pack 8-bit R, G, B channel values into a 16-bit RGB565 color.
+    
+    Parameters:
+        r (int): Red channel (0–255).
+        g (int): Green channel (0–255).
+        b (int): Blue channel (0–255).
+    
+    Returns:
+        int: RGB565-packed value in the range 0..65535.
+    """
     return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)
 
 class TFTBase:
@@ -77,13 +87,20 @@ class TFTBase:
     def __init__(self, spi, cs, dc, rst=None, bl=None,
                  width=0, height=0, rotation=0, bgr=True, invert=False):
         """
-        spi: machine.SPI instance
-        cs, dc, rst, bl: machine.Pin instances or pin numbers
-        width,height: physical panel size for this controller
-        rotation: 0..3
-        bgr: True if panel expects BGR color order (common on many modules)
-        invert: True to enable display inversion (module dependent)
-        """
+                 Initialize the TFTBase instance with the SPI bus, control pins, panel dimensions, rotation, color order, and inversion flag.
+                 
+                 Parameters:
+                     spi: machine.SPI — SPI bus instance used for communicating with the display.
+                     cs, dc: machine.Pin or int — Chip-select and data/command pins; if an integer is provided a Pin output will be created (CS defaults high, DC defaults low).
+                     rst, bl: machine.Pin or int or None — Optional reset and backlight pins; if an integer is provided a Pin output will be created (defaults high). Pass None to omit.
+                     width, height: int — Physical pixel dimensions of the panel.
+                     rotation: int — Rotation index 0..3 (rotations are applied modulo 4).
+                     bgr: bool — True if the panel expects BGR color order instead of RGB.
+                     invert: bool — True to enable panel inversion mode (driver-dependent).
+                 
+                 Notes:
+                     - The constructor stores provided interfaces and settings, initializes internal x/y offsets, sets a default font (tt7), and allocates a reusable 64-pixel RGB565 buffer for fast solid-fill operations.
+                 """
         self.spi = spi
         self.cs = cs if isinstance(cs, Pin) else Pin(cs, Pin.OUT, value=1)
         self.dc = dc if isinstance(dc, Pin) else Pin(dc, Pin.OUT, value=0)
@@ -131,6 +148,11 @@ class TFTBase:
             self._data(data)
 
     def reset(self):
+        """
+        Perform a hardware reset sequence using the configured reset pin.
+        
+        If no reset pin was provided at construction, the method does nothing. When present, it drives the reset pin high, waits 10 ms, drives it low, waits 20 ms, then drives it high and waits 120 ms to satisfy the controller's reset timing.
+        """
         if self.rst is None:
             return
         self.rst(1)
@@ -142,16 +164,22 @@ class TFTBase:
 
     def set_font(self, font):
         """
-        Set the font to use for text rendering.
-
-        :param font: Font module implementing get_ch(), height(), and max_width() methods.
-                     Examples: tt7, tt14, tt24, tt32
+        Selects the font used for subsequent text rendering operations.
+        
+        Parameters:
+            font: A font object that provides `get_ch(ch)`, `height()`, and `max_width()` methods; the object will be stored and used by text drawing routines.
         """
         self._font = font
 
     # --- Addressing / rotation ---
     @property
     def width(self):
+        """
+        Current display width in pixels, accounting for rotation.
+        
+        Returns:
+            int: The width in pixels after applying rotation; equals the panel's native width when rotation is 0 or 180 (even rotations), otherwise equals the panel's native height.
+        """
         return self._w if (self._rotation & 1) == 0 else self._h
 
     @property
@@ -322,6 +350,15 @@ class TFTBase:
 
     def fill_circle(self, x0, y0, r, color):
         # Scanline fill using midpoint
+        """
+        Draw a filled circle centered at (x0, y0) with the given radius.
+        
+        Parameters:
+            x0 (int): X coordinate of the circle center in pixels.
+            y0 (int): Y coordinate of the circle center in pixels.
+            r (int): Radius of the circle in pixels (>= 0).
+            color (int): 16-bit RGB565 color value to fill the circle.
+        """
         x = r
         y = 0
         err = 1 - r
@@ -340,8 +377,17 @@ class TFTBase:
     # --- Text rendering ---
     def text(self, s, x, y, color, bg=None, spacing=1):
         """
-        Draw ASCII text using current font.
-        bg=None means transparent background.
+        Render ASCII text at the given (x, y) position using the currently selected font.
+        
+        Newline characters reset the x position to the original start and advance y by the font height plus 2 pixels.
+        
+        Parameters:
+            s (str): The text to draw.
+            x (int): X coordinate of the text origin.
+            y (int): Y coordinate of the text origin.
+            color (int): Foreground color (RGB565) for glyph pixels.
+            bg (int or None): Background color (RGB565) to fill behind glyphs. If None, background is left transparent.
+            spacing (int): Additional horizontal spacing in pixels between consecutive characters.
         """
         font_height = self._font.height()
         cx = x
@@ -355,6 +401,20 @@ class TFTBase:
 
     def _draw_char(self, ch, x, y, color, bg):
         # Get glyph data and width from font
+        """
+        Render a single character glyph at the given (x, y) position using the current font.
+        
+        Parameters:
+            ch (str): Character to draw (single-character string).
+            x (int): X coordinate of the glyph's top-left corner.
+            y (int): Y coordinate of the glyph's top-left corner.
+            color (int): RGB565 color value used for glyph pixels.
+            bg (int or None): If provided, RGB565 background color to fill the glyph's bounding box;
+                if None, background is left unchanged (transparent).
+        
+        Returns:
+            int: Width of the drawn character in pixels (used to advance the text cursor).
+        """
         glyph, char_width = self._font.get_ch(ch)
         font_height = self._font.height()
 
@@ -416,10 +476,13 @@ class TFTBase:
     # --- Sprites ---
     def blit_rgb565(self, x, y, w, h, data, key=None):
         """
-        Blit a raw RGB565 sprite to the display.
-        - data: bytes/bytearray of length w*h*2, big-endian RGB565 per pixel.
-        - key: optional transparency key color (RGB565 int). If provided, this
-               function falls back to per-pixel plotting (slower).
+        Blit a raw RGB565 image to the display at the given coordinates.
+        
+        Stops immediately if width or height are less than or equal to zero. The
+        `data` buffer must contain exactly w*h*2 bytes in big-endian RGB565 pixel
+        order (high byte first). If `key` is None the pixel block is streamed
+        directly to the panel (fast); if `key` is provided the function treats that
+        RGB565 value as transparent and plots pixels individually (slower).
         """
         if w <= 0 or h <= 0:
             return

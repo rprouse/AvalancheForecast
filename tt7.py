@@ -3,24 +3,66 @@
 version = '0.2'
 
 def height():
+    """
+    Report the font's glyph height in pixels.
+    
+    Returns:
+        int: The glyph height in pixels (7).
+    """
     return 7
 
 def max_width():
+    """
+    Report the maximum glyph width of the font.
+    
+    Returns:
+        int: Maximum glyph width in pixels (5).
+    """
     return 5
 
 def hmap():
+    """
+    Report whether the font encodes glyphs using a horizontal map layout.
+    
+    Returns:
+        `True` if glyphs are stored as horizontal rows, `False` otherwise.
+    """
     return False
 
 def reverse():
+    """
+    Report whether glyph column order is reversed.
+    
+    Returns:
+        bool: `True` if glyph columns are stored in reverse (right-to-left), `False` otherwise.
+    """
     return False
 
 def monospaced():
+    """
+    Indicates whether the font uses fixed-width glyphs.
+    
+    @returns
+        True if the font is monospaced, False otherwise.
+    """
     return True
 
 def min_ch():
+    """
+    Lowest supported ASCII codepoint for this font.
+    
+    Returns:
+        int: Unicode codepoint of the first supported character (32, space).
+    """
     return 32
 
 def max_ch():
+    """
+    Maximum printable character code supported by the font.
+    
+    Returns:
+        max_code (int): Maximum character code (inclusive) supported, 126.
+    """
     return 126
 
 # Font data: each character starts with 2-byte width (little-endian),
@@ -141,10 +183,30 @@ b'\xa0\x02\xa7\x02\xae\x02\xb5\x02\xbc\x02\xc3\x02\xca\x02'
 _mvfont = memoryview(_font)
 
 def _chr_addr(ordch):
+    """
+    Get the starting byte offset within _font for the given character code.
+    
+    Parameters:
+        ordch (int): Unicode code point of the character (expected in the range 32–126; values outside the range will index relative to 32).
+    
+    Returns:
+        int: Byte offset into _font where the character's data begins, read from _index as a little-endian 2-byte value.
+    """
     offset = 2 * (ordch - 32)
     return int.from_bytes(_index[offset:offset + 2], 'little')
 
 def get_width(s):
+    """
+    Compute the total pixel width of a string using this font's per-character widths.
+    
+    Non-printable code points (outside 32–126) are treated as space (32).
+    
+    Parameters:
+        s (str): Input string to measure.
+    
+    Returns:
+        int: Sum of the widths of each character in pixels.
+    """
     width = 0
     for ch in s:
         ordch = ord(ch)
@@ -154,6 +216,15 @@ def get_width(s):
     return width
 
 def get_ch(ch):
+    """
+    Return the glyph bitmap and pixel width for a single printable ASCII character.
+    
+    Parameters:
+        ch (str): A single-character string. Characters outside the range U+0020 (32) to U+007E (126) are treated as space (32).
+    
+    Returns:
+        tuple: `(glyph_bytes, width)` where `glyph_bytes` is a memoryview slice of the font data containing the character's column bytes and `width` is the character's pixel width as an int.
+    """
     ordch = ord(ch)
     ordch = ordch if ordch >= 32 and ordch <= 126 else 32
     offset = _chr_addr(ordch)
