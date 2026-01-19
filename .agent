@@ -1,0 +1,183 @@
+# Avalanche Forecast Display - Agent Instructions
+
+## Project Overview
+MicroPython application for Raspberry Pi Pico W/2W that displays avalanche forecast data on a touch-enabled SPI TFT display. Fetches data from the Avalanche Canada API and presents danger ratings in a color-coded visual format.
+
+## Hardware Platform
+- **Microcontroller**: Raspberry Pi Pico W or Pico 2W
+- **Python**: MicroPython (not standard CPython)
+- **Display**: 2.8" SPI TFT Touch Display (320x240 resolution)
+  - Display Driver: ILI9341 or ST7796 controller
+  - Touch Interface: XPT2046 resistive touch controller
+- **Connectivity**: WiFi for API requests
+
+## Pin Configuration
+
+### Display SPI Bus (SPI0)
+- SCK/CLK: GPIO 6
+- MOSI/SDI/TX: GPIO 7
+- MISO/SDO: GPIO 4
+- CS: GPIO 13
+- RST: GPIO 14
+- DC: GPIO 15
+
+### Touch Controller SPI
+- SCK/CLK: GPIO 10
+- MOSI/SDI/TX: GPIO 11
+- MISO/SDO: GPIO 8
+- CS: GPIO 12
+
+## Project Architecture
+
+### Core Files
+- `main.py` - Main application entry point, fetches and displays avalanche forecast
+- `tft_spi.py` - Base TFT display driver (ILI9341 and ST7796 support)
+- `ili934xnew.py` - Alternative/extended ILI9341 driver implementation
+- `xpt2046.py` - XPT2046 touch screen controller driver
+- `wifi.py` - WiFi connection management with country code support
+- `secrets.py` - User-created file containing SSID and PASSWORD (not in repo)
+
+### Font Modules
+- `tt7.py` - 5x7 fixed-width font
+- `tt14.py` - 14pt font
+- `tt24.py` - 24pt font
+- `tt32.py` - 32pt font
+- `glcdfont.py` - Default GLCD font
+
+### Other Files
+- `tft_spi_test.py` - Display testing/demo code
+- `example_forecast.json` - Sample API response for testing
+
+## MicroPython Specifics
+
+### Important Constraints
+1. **Memory Limited**: Raspberry Pi Pico has ~264KB RAM. Avoid large buffers or framebuffers.
+2. **No Standard Library**: Use MicroPython equivalents:
+   - `urequests` instead of `requests`
+   - `machine` module for hardware (Pin, SPI)
+   - `time` or `utime` for timing functions
+   - No `datetime` - use simple time operations
+3. **Frozen Bytecode**: Font files are often frozen into firmware for space efficiency
+4. **RGB565 Color Format**: Display uses 16-bit RGB565, not 24-bit RGB
+5. **Bare Metal**: No OS, direct hardware control via `machine` module
+
+### Common MicroPython Patterns
+```python
+from machine import Pin, SPI
+import time
+import urequests
+
+# Pin initialization
+pin = Pin(15, Pin.OUT)
+
+# SPI initialization
+spi = SPI(0, baudrate=40000000, miso=Pin(4), mosi=Pin(7), sck=Pin(6))
+
+# WiFi
+import network
+wlan = network.WLAN(network.STA_IF)
+```
+
+### Memory Management
+- Use `const()` for constants to save RAM
+- Use `bytearray` and `memoryview` for efficient buffer operations
+- Avoid string concatenation in loops
+- Pre-allocate buffers when possible
+- Close HTTP responses: `response.close()`
+
+## Display Programming
+
+### Color Handling
+- Colors are RGB565 format (16-bit): 5 bits red, 6 bits green, 5 bits blue
+- Use `color565(r, g, b)` function to convert 8-bit RGB to RGB565
+- Example: `WHITE = color565(0xFF, 0xFF, 0xFF)`
+
+### Display Methods (tft_spi.py / ILI9341)
+- `tft.fill(color)` - Fill entire screen
+- `tft.fill_rect(x, y, w, h, color)` - Draw filled rectangle
+- `tft.text(string, x, y, color)` - Draw text at position
+- `tft.set_font(font_module)` - Set current font
+- `tft.init()` - Initialize display
+- `tft.pixel(x, y, color)` - Draw single pixel
+- `tft.hline(x, y, w, color)` - Horizontal line
+- `tft.vline(x, y, h, color)` - Vertical line
+
+### Screen Coordinates
+- Origin (0,0) is top-left corner
+- X increases right, Y increases down
+- Screen size: 320x240 with rotation=2
+- Rotation affects coordinate mapping
+
+## API Integration
+
+### Avalanche Canada API
+- Endpoint: `https://api.avalanche.ca/forecasts/en/products/point?lat={lat}&long={long}`
+- Returns JSON with danger ratings for three elevation bands:
+  - `alp` - Alpine (above treeline)
+  - `tln` - Treeline
+  - `btl` - Below treeline
+- Each rating has `value` (low/moderate/considerable/high/extreme) and `display` (formatted text)
+- An example of the returned JSON forecast is [example_forecast.json](./example_forecast.json)
+
+### Danger Rating Colors
+Must match Avalanche Canada's visual standards:
+- Low: RGB(80, 184, 72) - Green
+- Moderate: RGB(255, 242, 0) - Yellow
+- Considerable: RGB(247, 148, 30) - Orange
+- High: RGB(237, 28, 36) - Red
+- Extreme: RGB(35, 31, 32) - Black
+
+## Coding Guidelines
+
+### Code Style
+1. Follow MicroPython conventions (PEP 8 where applicable)
+2. Use descriptive variable names
+3. Include docstrings for functions
+4. Use `const()` for numeric constants
+5. Comment hardware-specific magic numbers
+
+### Error Handling
+- Always use try/finally with HTTP requests
+- Handle WiFi connection failures gracefully
+- Display error messages on screen for user feedback
+- Print debug info to console/REPL
+
+### Testing Considerations
+- Test on actual hardware (Pico W/2W)
+- Use `tft_spi_test.py` for display testing
+- Use `example_forecast.json` for offline testing
+- Monitor memory usage with `import gc; gc.mem_free()`
+
+## Development Workflow
+1. Edit code in VS Code
+2. Upload to Pico using MicroPico extension or similar
+3. Test via REPL or by running `main.py`
+4. Monitor serial output for debugging
+
+## Dependencies
+All dependencies are MicroPython built-ins or included in the project:
+- machine (built-in)
+- network (built-in)
+- urequests (typically included in MicroPython firmware)
+- Custom drivers: ili934xnew, tft_spi, xpt2046
+
+## Key Differences from Standard Python
+- No pip/package manager - all code must be uploaded to device
+- No f-strings in older MicroPython versions - use `format()` or `%` formatting
+- Limited stdlib - check MicroPython docs for available modules
+- Hardware access is synchronous/blocking
+- File system is limited - typically flash storage
+
+## Configuration
+Users must create `secrets.py`:
+```python
+SSID = "your_wifi_ssid"
+PASSWORD = "your_wifi_password"
+```
+
+## References
+- Avalanche Canada API: https://docs.avalanche.ca/
+- MicroPython docs: https://docs.micropython.org/
+- ILI9341 datasheet: https://www.lcdwiki.com/2.8inch_SPI_Module_ILI9341_SKU:MSP2807
+- ST7796 datasheet: https://www.lcdwiki.com/4.0inch_SPI_Module_ST7796
+- XPT2046 touch controller documentation

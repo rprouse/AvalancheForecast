@@ -12,6 +12,7 @@
 
 from machine import Pin
 import time
+import tt7
 
 # --- Common MIPI-DBI style commands (shared by both controllers) ---
 _NOP      = 0x00
@@ -37,206 +38,18 @@ _MADCTL_BGR = 0x08
 _COLMOD_16BIT = 0x55
 
 def color565(r, g, b):
-    """Convert 8-bit RGB to RGB565 (int 0..65535)."""
+    """
+    Pack 8-bit R, G, B channel values into a 16-bit RGB565 color.
+    
+    Parameters:
+        r (int): Red channel (0–255).
+        g (int): Green channel (0–255).
+        b (int): Blue channel (0–255).
+    
+    Returns:
+        int: RGB565-packed value in the range 0..65535.
+    """
     return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)
-
-# Minimal 5x7 font (ASCII 32..127), stored column-wise.
-# Each glyph is 5 bytes, each byte is 7 LSB bits (top->bottom).
-# This is a compact, standard public-domain style bitmap.
-_FONT_5X7 = bytes([
-    # 32 ' '
-    0x00,0x00,0x00,0x00,0x00,
-    # 33 '!'
-    0x00,0x00,0x5F,0x00,0x00,
-    # 34 '"'
-    0x00,0x07,0x00,0x07,0x00,
-    # 35 '#'
-    0x14,0x7F,0x14,0x7F,0x14,
-    # 36 '$'
-    0x24,0x2A,0x7F,0x2A,0x12,
-    # 37 '%'
-    0x23,0x13,0x08,0x64,0x62,
-    # 38 '&'
-    0x36,0x49,0x55,0x22,0x50,
-    # 39 "'"
-    0x00,0x05,0x03,0x00,0x00,
-    # 40 '('
-    0x00,0x1C,0x22,0x41,0x00,
-    # 41 ')'
-    0x00,0x41,0x22,0x1C,0x00,
-    # 42 '*'
-    0x14,0x08,0x3E,0x08,0x14,
-    # 43 '+'
-    0x08,0x08,0x3E,0x08,0x08,
-    # 44 ','
-    0x00,0x50,0x30,0x00,0x00,
-    # 45 '-'
-    0x08,0x08,0x08,0x08,0x08,
-    # 46 '.'
-    0x00,0x60,0x60,0x00,0x00,
-    # 47 '/'
-    0x20,0x10,0x08,0x04,0x02,
-    # 48 '0'
-    0x3E,0x51,0x49,0x45,0x3E,
-    # 49 '1'
-    0x00,0x42,0x7F,0x40,0x00,
-    # 50 '2'
-    0x42,0x61,0x51,0x49,0x46,
-    # 51 '3'
-    0x21,0x41,0x45,0x4B,0x31,
-    # 52 '4'
-    0x18,0x14,0x12,0x7F,0x10,
-    # 53 '5'
-    0x27,0x45,0x45,0x45,0x39,
-    # 54 '6'
-    0x3C,0x4A,0x49,0x49,0x30,
-    # 55 '7'
-    0x01,0x71,0x09,0x05,0x03,
-    # 56 '8'
-    0x36,0x49,0x49,0x49,0x36,
-    # 57 '9'
-    0x06,0x49,0x49,0x29,0x1E,
-    # 58 ':'
-    0x00,0x36,0x36,0x00,0x00,
-    # 59 ';'
-    0x00,0x56,0x36,0x00,0x00,
-    # 60 '<'
-    0x08,0x14,0x22,0x41,0x00,
-    # 61 '='
-    0x14,0x14,0x14,0x14,0x14,
-    # 62 '>'
-    0x00,0x41,0x22,0x14,0x08,
-    # 63 '?'
-    0x02,0x01,0x51,0x09,0x06,
-    # 64 '@'
-    0x32,0x49,0x79,0x41,0x3E,
-    # 65 'A'
-    0x7E,0x11,0x11,0x11,0x7E,
-    # 66 'B'
-    0x7F,0x49,0x49,0x49,0x36,
-    # 67 'C'
-    0x3E,0x41,0x41,0x41,0x22,
-    # 68 'D'
-    0x7F,0x41,0x41,0x22,0x1C,
-    # 69 'E'
-    0x7F,0x49,0x49,0x49,0x41,
-    # 70 'F'
-    0x7F,0x09,0x09,0x09,0x01,
-    # 71 'G'
-    0x3E,0x41,0x49,0x49,0x7A,
-    # 72 'H'
-    0x7F,0x08,0x08,0x08,0x7F,
-    # 73 'I'
-    0x00,0x41,0x7F,0x41,0x00,
-    # 74 'J'
-    0x20,0x40,0x41,0x3F,0x01,
-    # 75 'K'
-    0x7F,0x08,0x14,0x22,0x41,
-    # 76 'L'
-    0x7F,0x40,0x40,0x40,0x40,
-    # 77 'M'
-    0x7F,0x02,0x0C,0x02,0x7F,
-    # 78 'N'
-    0x7F,0x04,0x08,0x10,0x7F,
-    # 79 'O'
-    0x3E,0x41,0x41,0x41,0x3E,
-    # 80 'P'
-    0x7F,0x09,0x09,0x09,0x06,
-    # 81 'Q'
-    0x3E,0x41,0x51,0x21,0x5E,
-    # 82 'R'
-    0x7F,0x09,0x19,0x29,0x46,
-    # 83 'S'
-    0x46,0x49,0x49,0x49,0x31,
-    # 84 'T'
-    0x01,0x01,0x7F,0x01,0x01,
-    # 85 'U'
-    0x3F,0x40,0x40,0x40,0x3F,
-    # 86 'V'
-    0x1F,0x20,0x40,0x20,0x1F,
-    # 87 'W'
-    0x3F,0x40,0x38,0x40,0x3F,
-    # 88 'X'
-    0x63,0x14,0x08,0x14,0x63,
-    # 89 'Y'
-    0x07,0x08,0x70,0x08,0x07,
-    # 90 'Z'
-    0x61,0x51,0x49,0x45,0x43,
-    # 91 '['
-    0x00,0x7F,0x41,0x41,0x00,
-    # 92 '\'
-    0x02,0x04,0x08,0x10,0x20,
-    # 93 ']'
-    0x00,0x41,0x41,0x7F,0x00,
-    # 94 '^'
-    0x04,0x02,0x01,0x02,0x04,
-    # 95 '_'
-    0x40,0x40,0x40,0x40,0x40,
-    # 96 '`'
-    0x00,0x01,0x02,0x04,0x00,
-    # 97 'a'
-    0x20,0x54,0x54,0x54,0x78,
-    # 98 'b'
-    0x7F,0x48,0x44,0x44,0x38,
-    # 99 'c'
-    0x38,0x44,0x44,0x44,0x20,
-    # 100 'd'
-    0x38,0x44,0x44,0x48,0x7F,
-    # 101 'e'
-    0x38,0x54,0x54,0x54,0x18,
-    # 102 'f'
-    0x08,0x7E,0x09,0x01,0x02,
-    # 103 'g'
-    0x0C,0x52,0x52,0x52,0x3E,
-    # 104 'h'
-    0x7F,0x08,0x04,0x04,0x78,
-    # 105 'i'
-    0x00,0x44,0x7D,0x40,0x00,
-    # 106 'j'
-    0x20,0x40,0x44,0x3D,0x00,
-    # 107 'k'
-    0x7F,0x10,0x28,0x44,0x00,
-    # 108 'l'
-    0x00,0x41,0x7F,0x40,0x00,
-    # 109 'm'
-    0x7C,0x04,0x18,0x04,0x78,
-    # 110 'n'
-    0x7C,0x08,0x04,0x04,0x78,
-    # 111 'o'
-    0x38,0x44,0x44,0x44,0x38,
-    # 112 'p'
-    0x7C,0x14,0x14,0x14,0x08,
-    # 113 'q'
-    0x08,0x14,0x14,0x18,0x7C,
-    # 114 'r'
-    0x7C,0x08,0x04,0x04,0x08,
-    # 115 's'
-    0x48,0x54,0x54,0x54,0x20,
-    # 116 't'
-    0x04,0x3F,0x44,0x40,0x20,
-    # 117 'u'
-    0x3C,0x40,0x40,0x20,0x7C,
-    # 118 'v'
-    0x1C,0x20,0x40,0x20,0x1C,
-    # 119 'w'
-    0x3C,0x40,0x30,0x40,0x3C,
-    # 120 'x'
-    0x44,0x28,0x10,0x28,0x44,
-    # 121 'y'
-    0x0C,0x50,0x50,0x50,0x3C,
-    # 122 'z'
-    0x44,0x64,0x54,0x4C,0x44,
-    # 123 '{'
-    0x00,0x08,0x36,0x41,0x00,
-    # 124 '|'
-    0x00,0x00,0x7F,0x00,0x00,
-    # 125 '}'
-    0x00,0x41,0x36,0x08,0x00,
-    # 126 '~'
-    0x08,0x08,0x2A,0x1C,0x08,
-    # 127 DEL (unused)
-    0x00,0x00,0x00,0x00,0x00,
-])
 
 class TFTBase:
     """
@@ -274,13 +87,20 @@ class TFTBase:
     def __init__(self, spi, cs, dc, rst=None, bl=None,
                  width=0, height=0, rotation=0, bgr=True, invert=False):
         """
-        spi: machine.SPI instance
-        cs, dc, rst, bl: machine.Pin instances or pin numbers
-        width,height: physical panel size for this controller
-        rotation: 0..3
-        bgr: True if panel expects BGR color order (common on many modules)
-        invert: True to enable display inversion (module dependent)
-        """
+                 Initialize the TFTBase instance with the SPI bus, control pins, panel dimensions, rotation, color order, and inversion flag.
+                 
+                 Parameters:
+                     spi: machine.SPI — SPI bus instance used for communicating with the display.
+                     cs, dc: machine.Pin or int — Chip-select and data/command pins; if an integer is provided a Pin output will be created (CS defaults high, DC defaults low).
+                     rst, bl: machine.Pin or int or None — Optional reset and backlight pins; if an integer is provided a Pin output will be created (defaults high). Pass None to omit.
+                     width, height: int — Physical pixel dimensions of the panel.
+                     rotation: int — Rotation index 0..3 (rotations are applied modulo 4).
+                     bgr: bool — True if the panel expects BGR color order instead of RGB.
+                     invert: bool — True to enable panel inversion mode (driver-dependent).
+                 
+                 Notes:
+                     - The constructor stores provided interfaces and settings, initializes internal x/y offsets, sets a default font (tt7), and allocates a reusable 64-pixel RGB565 buffer for fast solid-fill operations.
+                 """
         self.spi = spi
         self.cs = cs if isinstance(cs, Pin) else Pin(cs, Pin.OUT, value=1)
         self.dc = dc if isinstance(dc, Pin) else Pin(dc, Pin.OUT, value=0)
@@ -296,6 +116,9 @@ class TFTBase:
         # Some panels use offsets (esp. certain 240x320 variants); keep hooks.
         self._xoff = 0
         self._yoff = 0
+
+        # Default font
+        self._font = tt7
 
         # Reusable small buffer for solid fills (RGB565)
         self._chunk = bytearray(2 * 64)  # 64 pixels worth
@@ -325,6 +148,11 @@ class TFTBase:
             self._data(data)
 
     def reset(self):
+        """
+        Perform a hardware reset sequence using the configured reset pin.
+        
+        If no reset pin was provided at construction, the method does nothing. When present, it drives the reset pin high, waits 10 ms, drives it low, waits 20 ms, then drives it high and waits 120 ms to satisfy the controller's reset timing.
+        """
         if self.rst is None:
             return
         self.rst(1)
@@ -334,9 +162,24 @@ class TFTBase:
         self.rst(1)
         time.sleep_ms(120)
 
+    def set_font(self, font):
+        """
+        Selects the font used for subsequent text rendering operations.
+        
+        Parameters:
+            font: A font object that provides `get_ch(ch)`, `height()`, and `max_width()` methods; the object will be stored and used by text drawing routines.
+        """
+        self._font = font
+
     # --- Addressing / rotation ---
     @property
     def width(self):
+        """
+        Current display width in pixels, accounting for rotation.
+        
+        Returns:
+            int: The width in pixels after applying rotation; equals the panel's native width when rotation is 0 or 180 (even rotations), otherwise equals the panel's native height.
+        """
         return self._w if (self._rotation & 1) == 0 else self._h
 
     @property
@@ -507,6 +350,15 @@ class TFTBase:
 
     def fill_circle(self, x0, y0, r, color):
         # Scanline fill using midpoint
+        """
+        Draw a filled circle centered at (x0, y0) with the given radius.
+        
+        Parameters:
+            x0 (int): X coordinate of the circle center in pixels.
+            y0 (int): Y coordinate of the circle center in pixels.
+            r (int): Radius of the circle in pixels (>= 0).
+            color (int): 16-bit RGB565 color value to fill the circle.
+        """
         x = r
         y = 0
         err = 1 - r
@@ -523,32 +375,55 @@ class TFTBase:
                 err += 2 * (y - x) + 1
 
     # --- Text rendering ---
-    def text(self, s, x, y, color, bg=None, scale=1, spacing=1):
+    def text(self, s, x, y, color, bg=None, spacing=1):
         """
-        Draw ASCII text using 5x7 font.
-        bg=None means transparent background.
-        scale=1..N scales glyph pixels.
+        Render ASCII text at the given (x, y) position using the currently selected font.
+        
+        Newline characters reset the x position to the original start and advance y by the font height plus 2 pixels.
+        
+        Parameters:
+            s (str): The text to draw.
+            x (int): X coordinate of the text origin.
+            y (int): Y coordinate of the text origin.
+            color (int): Foreground color (RGB565) for glyph pixels.
+            bg (int or None): Background color (RGB565) to fill behind glyphs. If None, background is left transparent.
+            spacing (int): Additional horizontal spacing in pixels between consecutive characters.
         """
+        font_height = self._font.height()
         cx = x
         for ch in s:
             if ch == "\n":
                 cx = x
-                y += (7 * scale) + 2
+                y += font_height + 2
                 continue
-            self._draw_char(ch, cx, y, color, bg, scale)
-            cx += (5 * scale) + spacing
+            char_width = self._draw_char(ch, cx, y, color, bg)
+            cx += char_width + spacing
 
-    def _draw_char(self, ch, x, y, color, bg, scale):
-        code = ord(ch)
-        if code < 32 or code > 127:
-            code = 32
-        idx = (code - 32) * 5
-        glyph = _FONT_5X7[idx:idx + 5]
+    def _draw_char(self, ch, x, y, color, bg):
+        # Get glyph data and width from font
+        """
+        Render a single character glyph at the given (x, y) position using the current font.
+        
+        Parameters:
+            ch (str): Character to draw (single-character string).
+            x (int): X coordinate of the glyph's top-left corner.
+            y (int): Y coordinate of the glyph's top-left corner.
+            color (int): RGB565 color value used for glyph pixels.
+            bg (int or None): If provided, RGB565 background color to fill the glyph's bounding box;
+                if None, background is left unchanged (transparent).
+        
+        Returns:
+            int: Width of the drawn character in pixels (used to advance the text cursor).
+        """
+        glyph, char_width = self._font.get_ch(ch)
+        font_height = self._font.height()
 
-        # Fast path: scale==1 and bg is not None => stream a 6x8 tile (incl spacing row/col)
-        # We render 5x7, but include 1px column/row spacing so text doesn't touch.
-        if scale == 1 and bg is not None:
-            w, h = 6, 8
+        # Calculate bytes per column (height / 8, rounded up)
+        bytes_per_col = (font_height + 7) // 8
+
+        # Fast path: bg is not None => stream a tile (incl spacing row/col)
+        if bg is not None:
+            w, h = char_width + 1, font_height + 1
             self._set_window(x, y, x + w - 1, y + h - 1)
             # Build a small RGB565 buffer for the tile
             buf = bytearray(w * h * 2)
@@ -560,49 +435,54 @@ class TFTBase:
                 buf[i] = bg_hi
                 buf[i + 1] = bg_lo
 
-            # Plot glyph
-            for col in range(5):
-                bits = glyph[col]
-                for row in range(7):
-                    if bits & (1 << row):
-                        p = (row * w + col) * 2
-                        buf[p] = fg_hi
-                        buf[p + 1] = fg_lo
+            # Plot glyph - glyph data format: [col0_byte0, col0_byte1, ..., col1_byte0, col1_byte1, ...]
+            for col in range(char_width):
+                for row in range(font_height):
+                    byte_idx = row // 8
+                    bit_idx = row % 8
+                    glyph_idx = col * bytes_per_col + byte_idx
+                    if glyph_idx < len(glyph):
+                        bits = glyph[glyph_idx]
+                        if bits & (1 << bit_idx):
+                            p = (row * w + col) * 2
+                            buf[p] = fg_hi
+                            buf[p + 1] = fg_lo
 
             self._data(buf)
-            return
+            return char_width
 
-        # General path: plot scaled pixels (transparent or scaled)
-        for col in range(5):
-            bits = glyph[col]
-            for row in range(7):
-                on = bits & (1 << row)
+        # General path: plot pixels (transparent background supported)
+        for col in range(char_width):
+            for row in range(font_height):
+                byte_idx = row // 8
+                bit_idx = row % 8
+                glyph_idx = col * bytes_per_col + byte_idx
+                on = False
+                if glyph_idx < len(glyph):
+                    bits = glyph[glyph_idx]
+                    on = bits & (1 << bit_idx)
+
                 if on:
-                    if scale == 1:
-                        self.pixel(x + col, y + row, color)
-                    else:
-                        self.fill_rect(x + col * scale, y + row * scale, scale, scale, color)
+                    self.pixel(x + col, y + row, color)
                 elif bg is not None:
-                    if scale == 1:
-                        self.pixel(x + col, y + row, bg)
-                    else:
-                        self.fill_rect(x + col * scale, y + row * scale, scale, scale, bg)
+                    self.pixel(x + col, y + row, bg)
         # Optional spacing column
         if bg is not None:
-            if scale == 1:
-                self.vline(x + 5, y, 7, bg)
-                self.hline(x, y + 7, 6, bg)
-            else:
-                self.fill_rect(x + 5 * scale, y, scale, 7 * scale, bg)
-                self.fill_rect(x, y + 7 * scale, 6 * scale, scale, bg)
+            self.vline(x + char_width, y, font_height, bg)
+            self.hline(x, y + font_height, char_width + 1, bg)
+
+        return char_width
 
     # --- Sprites ---
     def blit_rgb565(self, x, y, w, h, data, key=None):
         """
-        Blit a raw RGB565 sprite to the display.
-        - data: bytes/bytearray of length w*h*2, big-endian RGB565 per pixel.
-        - key: optional transparency key color (RGB565 int). If provided, this
-               function falls back to per-pixel plotting (slower).
+        Blit a raw RGB565 image to the display at the given coordinates.
+        
+        Stops immediately if width or height are less than or equal to zero. The
+        `data` buffer must contain exactly w*h*2 bytes in big-endian RGB565 pixel
+        order (high byte first). If `key` is None the pixel block is streamed
+        directly to the panel (fast); if `key` is provided the function treats that
+        RGB565 value as transparent and plots pixels individually (slower).
         """
         if w <= 0 or h <= 0:
             return
