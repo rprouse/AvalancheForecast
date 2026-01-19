@@ -419,6 +419,8 @@ class TFTBase:
         self.fill_rect(x, y, 1, h, color)
 
     def rect(self, x, y, w, h, color):
+        if w <= 0 or h <= 0:
+            return
         self.hline(x, y, w, color)
         self.hline(x, y + h - 1, w, color)
         self.vline(x, y, h, color)
