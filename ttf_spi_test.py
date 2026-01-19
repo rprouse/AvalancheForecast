@@ -33,7 +33,7 @@ tft.fill(tft_spi.color565(0, 0, 0))
 white = tft_spi.color565(255, 255, 255)
 green = tft_spi.color565(0, 255, 0)
 
-tft.text("Hello TFT", 10, 10, white, bg=None, scale=2)
+tft.text("Hello TFT", 10, 10, white, bg=None, scale=1)
 tft.rect(5, 5, 120, 40, green)
 tft.line(0, 0, tft.width - 1, tft.height - 1, green)
 tft.fill_circle(80, 120, 30, tft_spi.color565(255, 0, 0))

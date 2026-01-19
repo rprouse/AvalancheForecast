@@ -371,6 +371,9 @@ class TFTBase:
     def fill(self, color):
         self.fill_rect(0, 0, self.width, self.height, color)
 
+    def erase(self):
+        self.fill(0x0000)  # Black
+
     def pixel(self, x, y, color):
         if x < 0 or y < 0 or x >= self.width or y >= self.height:
             return
