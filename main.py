@@ -80,24 +80,30 @@ def display_forecast(tft, today, y):
 
     y = y + 18
     rating = today['ratings']['alp']['rating']['value']
+    bg_color = DANGER_BG_COLORS.get(rating, GRAY)
+    fg_color = DANGER_FG_COLORS.get(rating, BLACK)
     tft.fill_rect(10, y, 100, 16, ALP)
     tft.text("Alpine", 14, y + 4, BLACK)
-    tft.fill_rect(112, y, 100, 16, DANGER_BG_COLORS[rating])
-    tft.text(today['ratings']['alp']['rating']['display'], 116,  y + 4, DANGER_FG_COLORS[rating])
+    tft.fill_rect(112, y, 100, 16, bg_color)
+    tft.text(today['ratings']['alp']['rating']['display'], 116,  y + 4, fg_color)
 
     y = y + 18
     rating = today['ratings']['tln']['rating']['value']
+    bg_color = DANGER_BG_COLORS.get(rating, GRAY)
+    fg_color = DANGER_FG_COLORS.get(rating, BLACK)
     tft.fill_rect(10, y, 100, 16, TLN)
     tft.text("Treeline", 14, y + 4, BLACK)
-    tft.fill_rect(112, y, 100, 16, DANGER_BG_COLORS[rating])
-    tft.text(today['ratings']['tln']['rating']['display'], 116,  y + 4, DANGER_FG_COLORS[rating])
+    tft.fill_rect(112, y, 100, 16, bg_color)
+    tft.text(today['ratings']['tln']['rating']['display'], 116,  y + 4, fg_color)
 
     y = y + 18
     rating = today['ratings']['btl']['rating']['value']
+    bg_color = DANGER_BG_COLORS.get(rating, GRAY)
+    fg_color = DANGER_FG_COLORS.get(rating, BLACK)
     tft.fill_rect(10, y, 100, 16, BTL)
     tft.text("Below Treeline", 14, y + 4, BLACK)
-    tft.fill_rect(112, y, 100, 16, DANGER_BG_COLORS[rating])
-    tft.text(today['ratings']['btl']['rating']['display'], 116,  y + 4, DANGER_FG_COLORS[rating])
+    tft.fill_rect(112, y, 100, 16, bg_color)
+    tft.text(today['ratings']['btl']['rating']['display'], 116,  y + 4, fg_color)
 
     return y + 24
 
