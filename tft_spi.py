@@ -622,6 +622,33 @@ class TFTBase:
 
 
 class ILI9341(TFTBase):
+    """
+    Driver for ILI9341-based TFT displays with 240x320 resolution.
+
+    The ILI9341 is a popular TFT LCD controller supporting up to 240×320
+    RGB pixels in 16-bit color mode. This driver uses a minimal initialization
+    sequence via :meth:`common_init` for broad module compatibility, performing:
+
+    - Hardware and software reset
+    - Sleep out command
+    - RGB565 pixel format configuration
+    - MADCTL (rotation and color order) setup
+    - Display inversion control
+    - Display on
+
+    The ILI9341 does not require controller-specific command sequences,
+    making it compatible with a wide range of modules. Optional frame rate
+    and porch settings are intentionally omitted to maximize compatibility.
+
+    :param spi: Configured SPI bus instance
+    :param cs: Chip select pin (Pin object or pin number)
+    :param dc: Data/command control pin (Pin object or pin number)
+    :param rst: Optional reset pin (Pin object or pin number)
+    :param bl: Optional backlight control pin (Pin object or pin number)
+    :param rotation: Display rotation (0-3, default 0)
+    :param bgr: Use BGR color order if True, RGB if False (default True)
+    :param invert: Enable display inversion if True (default False)
+    """
     def __init__(self, spi, cs, dc, rst=None, bl=None,
                  rotation=0, bgr=True, invert=False):
         super().__init__(spi, cs, dc, rst=rst, bl=bl,
