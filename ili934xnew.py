@@ -214,10 +214,13 @@ class ILI9341:
             color = ustruct.pack(">H", color)
         else:
             color = self._colormap[0:2] #background
+
         for i in range(_CHUNK):
-            self._buf[2*i]=color[0]; self._buf[2*i+1]=color[1]
+            self._buf[2*i]=color[0]
+            self._buf[2*i+1]=color[1]
+
         chunks, rest = divmod(w * h, _CHUNK)
-        self._writeblock(x, y, x + w - 1, y + h - 1, None)
+        self._writeblock(int(x), int(y), int(x + w - 1), int(y + h - 1), None)
         if chunks:
             for count in range(chunks):
                 self._data(self._buf)
