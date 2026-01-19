@@ -13,11 +13,12 @@ def wifi_connect(timeout_s=10, country="CA"):
     wlan.active(True)
     wlan.connect(SSID, PASSWORD)
 
-    # Wait for connect or fail (docs pattern).:contentReference[oaicite:3]{index=3}
+    # Wait for connect or fail
+    # Status: 0=IDLE, 1=CONNECTING, 2=WRONG_PASSWORD, 3=CONNECTED, -1=FAILED, -2=NO_AP_FOUND, -3=FAILED
     t0 = time.time()
     while time.time() - t0 < timeout_s:
         s = wlan.status()
-        if s < 0 or s >= 3:
+        if s == 3 or s < 0:  # Connected or error
             break
         time.sleep(1)
 
