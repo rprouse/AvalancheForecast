@@ -18,7 +18,7 @@ def wifi_connect(timeout_s=10, country="CA"):
     t0 = time.time()
     while time.time() - t0 < timeout_s:
         s = wlan.status()
-        if s == 3 or s < 0:  # Connected or error
+        if s == 3 or s == 2 or s < 0:  # Connected or error (incl wrong password)
             break
         time.sleep(1)
 

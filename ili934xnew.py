@@ -216,7 +216,7 @@ class ILI9341:
             color = self._colormap[0:2] #background
 
         for i in range(_CHUNK):
-            self._buf[2*i]=color[0];
+            self._buf[2*i]=color[0]
             self._buf[2*i+1]=color[1]
 
         chunks, rest = divmod(w * h, _CHUNK)

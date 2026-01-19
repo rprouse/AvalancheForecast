@@ -142,5 +142,5 @@ def main():
         if response is not None:
             response.close()
 
-    if __name__ == "__main__":
-        main()
+if __name__ == "__main__":
+    main()

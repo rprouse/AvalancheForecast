@@ -1,4 +1,5 @@
 from machine import SPI, Pin
+from micropython import const
 import tft_spi
 
 SCR_ROT = const(2)

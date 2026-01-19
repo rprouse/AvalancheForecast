@@ -627,7 +627,7 @@ class ILI9341(TFTBase):
     """
     Driver for ILI9341-based TFT displays with 240x320 resolution.
 
-    The ILI9341 is a popular TFT LCD controller supporting up to 240×320
+    The ILI9341 is a popular TFT LCD controller supporting up to 240x320
     RGB pixels in 16-bit color mode. This driver uses a minimal initialization
     sequence via :meth:`common_init` for broad module compatibility, performing:
 
