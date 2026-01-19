@@ -3,7 +3,7 @@ import urequests
 from wifi import connect_wifi
 
 from tft_spi import ILI9341, color565
-import tt7, tt14, tt24, tt32
+import fonts.tt7, fonts.tt14, fonts.tt24, fonts.tt32
 from machine import Pin, SPI
 import os
 
@@ -91,9 +91,9 @@ def display_forecast(tft, today, y):
     Returns:
         int: The vertical pixel coordinate to continue drawing after this block.
     """
-    tft.set_font(tt14)
+    tft.set_font(fonts.tt14)
     tft.text(today['date']['display'], 10, y, GRAY)
-    tft.set_font(tt7)
+    tft.set_font(fonts.tt7)
 
     y = y + 18
     rating = today['ratings']['alp']['rating']['value']
@@ -130,7 +130,7 @@ def main():
 
     Displays progress messages on the TFT while connecting to WiFi and fetching data. On a successful HTTP 200 response, parses the Avalanche Canada report and renders each danger rating using display_forecast. On failure or exception, writes an error message to the display. Ensures any opened HTTP response is closed.
     """
-    print(os.uname())
+    print(os.uname()) # type: ignore
     tft = initialize_display()
 
     print("Connecting to WiFi...")
@@ -160,13 +160,13 @@ def main():
                 y = display_forecast(tft, danger_rating, y)
 
         else:
-            tft.set_font(tt7)
+            tft.set_font(fonts.tt7)
             tft.text("Failed to fetch forecast data", 10, 10, WHITE)
 
     except Exception as e:
         # Handle network or parsing errors
         print("Error fetching forecast data:", e)
-        tft.set_font(tt7)
+        tft.set_font(fonts.tt7)
         tft.text("Error fetching forecast data", 10, 10, WHITE)
 
     finally:

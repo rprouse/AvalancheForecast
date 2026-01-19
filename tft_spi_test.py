@@ -1,7 +1,7 @@
 from machine import SPI, Pin
 from micropython import const
 import tft_spi
-import tt7, tt14, tt24
+import fonts.tt7, fonts.tt14, fonts.tt24
 
 SCR_ROT = const(2)
 
@@ -35,13 +35,13 @@ tft.fill(tft_spi.color565(0, 0, 0))
 white = tft_spi.color565(255, 255, 255)
 green = tft_spi.color565(0, 255, 0)
 
-tft.text("Small", 10, 10, white, bg=None, scale=1)
+tft.text("Small", 10, 10, white)
 
 # Switch to larger font
-tft.set_font(tt14)
+tft.set_font(fonts.tt14)
 tft.text("Medium", 10, 30, tft_spi.color565(255, 255, 255))
 
-tft.set_font(tt24)
+tft.set_font(fonts.tt24)
 tft.text("Large", 10, 60, tft_spi.color565(255, 255, 255))
 
 tft.rect(5, 160, 120, 40, green)
