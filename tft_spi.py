@@ -239,6 +239,38 @@ _FONT_5X7 = bytes([
 ])
 
 class TFTBase:
+    """
+    Base class providing core SPI TFT display functionality.
+
+    This class implements controller-agnostic primitives for common
+    MIPI-DBI style TFT panels, such as:
+
+    - Low-level command/data writes over SPI
+    - Window (column/row) addressing
+    - Pixel, line, rectangle, circle, and filled-shape drawing
+    - Basic 5x7 text rendering and RGB565 sprite blitting
+
+    Concrete driver classes (for example :class:`ILI9341` and
+    :class:`ST7796S`) inherit from :class:`TFTBase` and implement the
+    controller-specific initialization sequence and MADCTL/rotation
+    configuration while reusing the high-level drawing API exposed by
+    this base class.
+
+    Typical usage is to:
+
+    1. Create a hardware SPI instance (e.g. ``machine.SPI``).
+    2. Provide chip-select (CS), data/command (DC), optional reset (RST),
+       and optional backlight (BL) pins, either as ``machine.Pin``
+       objects or as pin numbers.
+    3. Instantiate a concrete subclass with the appropriate panel width,
+       height, rotation and color-order settings, then call its drawing
+       methods to update the display.
+
+    Advanced users adding support for new controllers should subclass
+    :class:`TFTBase`, implement the required initialization and any
+    controller-specific commands, and rely on the existing drawing and
+    text methods where possible.
+    """
     def __init__(self, spi, cs, dc, rst=None, bl=None,
                  width=0, height=0, rotation=0, bgr=True, invert=False):
         """
