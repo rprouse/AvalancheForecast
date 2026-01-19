@@ -3,6 +3,7 @@ import urequests
 from wifi import wifi_connect
 
 from tft_spi import ILI9341, color565
+import tt7, tt14, tt24, tt32
 from machine import Pin, SPI
 import os
 
@@ -77,7 +78,9 @@ def initialize_display():
     return tft
 
 def display_forecast(tft, today, y):
-    tft.text(today['date']['display'], 10, y, GRAY, scale=2)
+    tft.set_font(tt14)
+    tft.text(today['date']['display'], 10, y, GRAY)
+    tft.set_font(tt7)
 
     y = y + 18
     rating = today['ratings']['alp']['rating']['value']
@@ -139,12 +142,14 @@ def main():
                 y = display_forecast(tft, danger_rating, y)
 
         else:
-            tft.text("Failed to fetch forecast data", 10, 10, WHITE, scale=2)
+            tft.set_font(tt7)
+            tft.text("Failed to fetch forecast data", 10, 10, WHITE)
 
     except Exception as e:
         # Handle network or parsing errors
         print("Error fetching forecast data:", e)
-        tft.text("Error fetching forecast data", 10, 10, WHITE, scale=2)
+        tft.set_font(tt7)
+        tft.text("Error fetching forecast data", 10, 10, WHITE)
 
     finally:
         if response is not None:
