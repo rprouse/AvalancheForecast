@@ -107,25 +107,34 @@ def main():
     tft = initialize_display()
 
     # Fetch avalanche forecast data from the Avalanche Canada API
-    response = urequests.get("https://api.avalanche.ca/forecasts/en/products/point?lat=49.516324&long=-115.068756")
-    print("Response status:", response.status_code)
+    response = None
+    try:
+        response = urequests.get("https://api.avalanche.ca/forecasts/en/products/point?lat=49.516324&long=-115.068756")
+        print("Response status:", response.status_code)
 
-    if response.status_code == 200:
-        data = response.json()
-        title = data['report']['title']
-        # display.set_font(tt14)
-        # display.set_color(color565(0, 255, 255), color565(0, 0, 0))
-        # display.print(title + "\n")
+        if response.status_code == 200:
+            data = response.json()
+            title = data['report']['title']
+            # display.set_font(tt14)
+            # display.set_color(color565(0, 255, 255), color565(0, 0, 0))
+            # display.print(title + "\n")
 
-        # Display danger ratings
-        y = 10
-        for danger_rating in data['report']['dangerRatings']:
-            y = display_forecast(tft, danger_rating, y)
+            # Display danger ratings
+            y = 10
+            for danger_rating in data['report']['dangerRatings']:
+                y = display_forecast(tft, danger_rating, y)
 
-    else:
-        tft.text("Failed to fetch forecast data", 10, 10, WHITE, scale=2)
+        else:
+            tft.text("Failed to fetch forecast data", 10, 10, WHITE, scale=2)
 
-    response.close()
+    except Exception as e:
+        # Handle network or parsing errors
+        print("Error fetching forecast data:", e)
+        tft.text("Error fetching forecast data", 10, 10, WHITE, scale=2)
 
-if __name__ == "__main__":
-    main()
+    finally:
+        if response is not None:
+            response.close()
+
+    if __name__ == "__main__":
+        main()
