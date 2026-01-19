@@ -64,7 +64,7 @@ def initialize_display():
     tft.fill(BLACK)
     return tft
 
-def display_forecast(tft,today, y):
+def display_forecast(tft, today, y):
     tft.text(today['date']['display'], 10, y, GRAY, scale=2)
 
     y = y + 18
