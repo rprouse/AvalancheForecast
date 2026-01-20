@@ -117,7 +117,7 @@ wlan = network.WLAN(network.STA_IF)
   - `tln` - Treeline
   - `btl` - Below treeline
 - Each rating has `value` (low/moderate/considerable/high/extreme) and `display` (formatted text)
-- An example of the returned JSON forecast is [example_forecast.json](./example_forecast.json)
+- An example of the returned JSON forecast is [docs/example_forecast.json](./docs/example_forecast.json)
 
 ### Danger Rating Colors
 Must match Avalanche Canada's visual standards:

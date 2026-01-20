@@ -24,7 +24,8 @@
       "**/venv",
       "**/.venv",
       "**/.idea",
-      "example_forecast.json"
+      "**/example_forecast.json",
+      "docs/**",
     ],
     "micropico.softResetAfterUpload": true
 }

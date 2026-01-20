@@ -2,7 +2,7 @@ import urequests
 
 from wifi import connect_wifi
 
-from tft_spi import ILI9341, color565
+from drivers.tft_spi import ILI9341, color565
 import fonts.tt7, fonts.tt14, fonts.tt24, fonts.tt32
 from machine import Pin, SPI
 import os
