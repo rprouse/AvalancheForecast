@@ -1,4 +1,5 @@
-from machine import Pin, SPI
+from machine import Pin, RTC, SPI
+import ntptime
 import urequests
 import os
 
@@ -80,6 +81,13 @@ def initialize_display():
     tft.fill(BLACK)
     return tft
 
+# --- NTP sync ---
+def sync_time():
+    """Synchronize the device's RTC with an NTP server."""
+    # Canadian NTP pool
+    ntptime.host = "ca.pool.ntp.org"
+    ntptime.settime()  # sets RTC to UTC
+
 def display_forecast(tft, today, y):
     """
     Render the forecast date and three danger-rating rows (Alpine, Treeline, Below Treeline) onto the provided TFT display and return the next vertical drawing position.
@@ -146,9 +154,27 @@ def main():
 
     wlan = connect_wifi(SSID, PASSWORD, timeout_s=20, country="CA", verbose=True)
 
+    # Setting device time
+    print("Setting device time via NTP...")
+    tft.text("Setting device time via NTP...", 10, 22, GREEN)
+    sync_time()
+
+    rtc = RTC()
+
+    # RTC returns (year, month, day, weekday, hour, minute, second, subseconds)
+    t = rtc.datetime()
+    print(
+        "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d} UTC".format(
+            t[0], t[1], t[2], t[4], t[5], t[6]
+        )
+    )
+    tft.text("{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d} UTC".format(
+            t[0], t[1], t[2], t[4], t[5], t[6]
+        ), 10, 34, GREEN)
+
     # Fetch avalanche forecast data from the Avalanche Canada API
     print("Getting Avalanche Forecast...")
-    tft.text("Getting Avalanche Forecast...", 10, 22, GREEN)
+    tft.text("Getting Avalanche Forecast...", 10, 46, GREEN)
 
     response = None
     try:
@@ -175,6 +201,16 @@ def main():
 
         print("Entering touch event loop.  Press Ctrl-C to exit.")
         while True:
+            # Re-sync occasionally to limit drift (e.g. once per hour)
+            t = rtc.datetime()
+            if t[5] == 0 and t[6] < 2:  # near top of the hour
+                try:
+                    sync_time()
+                    print("NTP re-sync OK")
+                except Exception as e:
+                    print("NTP re-sync failed:", e)
+
+            # Check for touch events
             result = touch.get_touch()
             if result is not None:
                 x, y = touch.normalize(*result)
