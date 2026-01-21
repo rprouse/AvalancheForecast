@@ -70,7 +70,8 @@ class Touch(object):
                 meany = sum([c[1] for c in buff]) // buf_length
                 dev = sum([(c[0] - meanx)**2 +
                           (c[1] - meany)**2 for c in buff]) / buf_length
-                if dev <= 50:  # Deviation should be under margin of 50
+                print("dev:", dev)
+                if dev <= 100:  # Deviation should be under margin of 100
                     return self.normalize(meanx, meany)
             # get a new value
             sample = self.raw_touch()  # get a touch

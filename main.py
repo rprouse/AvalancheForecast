@@ -1,11 +1,12 @@
+from machine import Pin, SPI
 import urequests
+import os
 
-from wifi import connect_wifi
 
 from drivers.tft_spi import ILI9341, color565
 import fonts.tt7, fonts.tt14, fonts.tt24, fonts.tt32
-from machine import Pin, SPI
-import os
+from drivers.xpt2046 import Touch
+from wifi import connect_wifi
 
 from secrets import SSID, PASSWORD
 
@@ -35,8 +36,8 @@ DANGER_FG_COLORS = {
     "extreme": WHITE
 }
 
-SCR_WIDTH = const(320)
-SCR_HEIGHT = const(240)
+SCR_WIDTH = const(240)
+SCR_HEIGHT = const(360)
 SCR_ROT = const(2)
 CENTER_Y = int(SCR_WIDTH/2)
 CENTER_X = int(SCR_HEIGHT/2)
@@ -124,14 +125,21 @@ def display_forecast(tft, today, y):
 
     return y + 24
 
-def main():
-    """
-    Initialize hardware, connect to WiFi, fetch an avalanche point forecast, and render danger ratings on the TFT display.
 
-    Displays progress messages on the TFT while connecting to WiFi and fetching data. On a successful HTTP 200 response, parses the Avalanche Canada report and renders each danger rating using display_forecast. On failure or exception, writes an error message to the display. Ensures any opened HTTP response is closed.
-    """
+def touchscreen_press(x, y):
+    """Process touchscreen press events."""
+    # Y needs to be flipped
+    x = (SCR_WIDTH - 1) - x
+    print(f"Touch at x={x}, y={y}")
+
+def main():
     print(os.uname()) # type: ignore
     tft = initialize_display()
+
+    print("Initializing Touch...")
+    spi2 = SPI(1, baudrate=1000000, sck=Pin(10), mosi=Pin(11), miso=Pin(8))
+    # The Pico Breadboard Kit does not have the interrupt pin connected, so we won't use it here, instead we will poll for touches
+    touch = Touch(spi2, cs=Pin(12), int_pin=Pin(0)) #, int_handler=touchscreen_press)
 
     print("Connecting to WiFi...")
     tft.text("Connecting to WiFi...", 10, 10, GREEN)
@@ -148,6 +156,7 @@ def main():
         tft.fill(BLACK)
         print("Response status:", response.status_code)
         if response.status_code == 200:
+            print("Parsing forecast data...")
             data = response.json()
             title = data['report']['title']
             # display.set_font(tt14)
@@ -157,11 +166,23 @@ def main():
             # Display danger ratings
             y = 10
             for danger_rating in data['report']['dangerRatings']:
+                print("Danger rating:", danger_rating)
                 y = display_forecast(tft, danger_rating, y)
 
         else:
             tft.set_font(fonts.tt7)
             tft.text("Failed to fetch forecast data", 10, 10, WHITE)
+
+        print("Entering touch event loop.  Press Ctrl-C to exit.")
+        while True:
+            result = touch.get_touch()
+            if result is not None:
+                x, y = touch.normalize(*result)
+                touchscreen_press(x, y)
+
+    except KeyboardInterrupt:
+        print("\nCtrl-C pressed.  Cleaning up and exiting...")
+        return
 
     except Exception as e:
         # Handle network or parsing errors
@@ -172,6 +193,10 @@ def main():
     finally:
         if response is not None:
             response.close()
+
+        if tft is not None:
+            tft.fill(BLACK)
+            tft.text("Done.", 10, 10, GREEN)
 
 if __name__ == "__main__":
     main()
