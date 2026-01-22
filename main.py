@@ -44,13 +44,13 @@ class AvalancheForecastApplication:
         self.forecast = AvalancheForecast(self.tft)
 
     # --- NTP sync ---
-    def sync_time(self):
+    def _sync_time(self):
         """Synchronize the device's RTC with an NTP server."""
         # Canadian NTP pool
         ntptime.host = "ca.pool.ntp.org"
         ntptime.settime()  # sets RTC to UTC
 
-    def touchscreen_press(self, x, y):
+    def _touchscreen_press(self, x, y):
         """Process touchscreen press events."""
         # Y needs to be flipped
         x = (display.SCR_WIDTH - 1) - x
@@ -82,7 +82,7 @@ class AvalancheForecastApplication:
                 t = self.rtc.datetime()
                 if t[5] == 0 and t[6] < 2:  # near top of the hour
                     try:
-                        self.sync_time()
+                        self._sync_time()
                         print("NTP re-sync OK")
                     except Exception as e:
                         print("NTP re-sync failed:", e)
@@ -91,7 +91,7 @@ class AvalancheForecastApplication:
                 result = self.touch.get_touch()
                 if result is not None:
                     x, y = self.touch.normalize(*result)
-                    self.touchscreen_press(x, y)
+                    self._touchscreen_press(x, y)
         except KeyboardInterrupt:
             print("\nCtrl-C pressed.  Cleaning up and exiting...")
             if self.tft is not None:
@@ -105,7 +105,6 @@ class AvalancheForecastApplication:
         self.tft.erase()
         self.tft.set_font(fonts.tt7)
         self.y = self.tft.text(msg, 10, 10, colors.RED)
-
 
 def main():
     try:
