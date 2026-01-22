@@ -1,11 +1,11 @@
+from forecast import AvalancheForecast
 from machine import Pin, RTC, SPI
 import ntptime
-import urequests
 import os
 
 import colors
-from drivers.tft_spi import ILI9341, color565
-import fonts.tt7, fonts.tt14, fonts.tt24, fonts.tt32
+from drivers.tft_spi import ILI9341
+import fonts.tt7
 from drivers.xpt2046 import Touch
 import pins
 from secrets import SSID, PASSWORD
@@ -55,53 +55,6 @@ def sync_time():
     ntptime.host = "ca.pool.ntp.org"
     ntptime.settime()  # sets RTC to UTC
 
-def display_forecast(tft, today, y):
-    """
-    Render the forecast date and three danger-rating rows (Alpine, Treeline, Below
-    Treeline) onto the provided TFT display and return the next vertical drawing position.
-
-    Parameters:
-        tft: TFT display instance used for drawing (must support text, set_font, fill_rect).
-        today (dict): Forecast data for a single day; expected to contain 'date'->'display'
-        and 'ratings'->{'alp','tln','btl'} with each having 'rating'->{'value','display'}.
-        y (int): Starting vertical pixel coordinate for rendering.
-
-    Returns:
-        int: The vertical pixel coordinate to continue drawing after this block.
-    """
-    tft.set_font(fonts.tt14)
-    tft.text(today['date']['display'], 10, y, colors.GRAY)
-    tft.set_font(fonts.tt7)
-
-    y = y + 18
-    rating = today['ratings']['alp']['rating']['value']
-    bg_color = colors.DANGER_BG_COLORS.get(rating, colors.GRAY)
-    fg_color = colors.DANGER_FG_COLORS.get(rating, colors.BLACK)
-    tft.fill_rect(10, y, 100, 16, colors.ALP)
-    tft.text("Alpine", 14, y + 4, colors.BLACK)
-    tft.fill_rect(112, y, 100, 16, bg_color)
-    tft.text(today['ratings']['alp']['rating']['display'], 116,  y + 4, fg_color)
-
-    y = y + 18
-    rating = today['ratings']['tln']['rating']['value']
-    bg_color = colors.DANGER_BG_COLORS.get(rating, colors.GRAY)
-    fg_color = colors.DANGER_FG_COLORS.get(rating, colors.BLACK)
-    tft.fill_rect(10, y, 100, 16, colors.TLN)
-    tft.text("Treeline", 14, y + 4, colors.BLACK)
-    tft.fill_rect(112, y, 100, 16, bg_color)
-    tft.text(today['ratings']['tln']['rating']['display'], 116,  y + 4, fg_color)
-
-    y = y + 18
-    rating = today['ratings']['btl']['rating']['value']
-    bg_color = colors.DANGER_BG_COLORS.get(rating, colors.GRAY)
-    fg_color = colors.DANGER_FG_COLORS.get(rating, colors.BLACK)
-    tft.fill_rect(10, y, 100, 16, colors.BTL)
-    tft.text("Below Treeline", 14, y + 4, colors.BLACK)
-    tft.fill_rect(112, y, 100, 16, bg_color)
-    tft.text(today['ratings']['btl']['rating']['display'], 116,  y + 4, fg_color)
-
-    return y + 24
-
 
 def touchscreen_press(x, y):
     """Process touchscreen press events."""
@@ -140,28 +93,19 @@ def main():
     print("Getting Avalanche Forecast...")
     tft.text("Getting Avalanche Forecast...", 10, 46, colors.GREEN)
 
-    response = None
+    forecast = AvalancheForecast(tft)
     try:
-        response = urequests.get("https://api.avalanche.ca/forecasts/en/products/point?lat=49.516324&long=-115.068756")
+        data = forecast.get_forecast(49.516324, -115.068756)  # Example: Fernie, BC
         tft.fill(colors.BLACK)
-        print("Response status:", response.status_code)
-        if response.status_code == 200:
-            print("Parsing forecast data...")
-            data = response.json()
-            title = data['report']['title']
-            # display.set_font(tt14)
-            # display.set_color(color565(0, 255, 255), color565(0, 0, 0))
-            # display.print(title + "\n")
 
-            # Display danger ratings
-            y = 10
-            for danger_rating in data['report']['dangerRatings']:
-                print("Danger rating:", danger_rating)
-                y = display_forecast(tft, danger_rating, y)
+        print("Parsing forecast data...")
+        title = data['report']['title']
+        # display.set_font(tt14)
+        # display.set_color(color565(0, 255, 255), color565(0, 0, 0))
+        # display.print(title + "\n")
 
-        else:
-            tft.set_font(fonts.tt7)
-            tft.text("Failed to fetch forecast data", 10, 10, colors.WHITE)
+        # Display danger ratings
+        y = forecast.display_forecast(data, 10)
 
         print("Entering touch event loop.  Press Ctrl-C to exit.")
         while True:
@@ -191,9 +135,6 @@ def main():
         tft.text("Error fetching forecast data", 10, 10, colors.WHITE)
 
     finally:
-        if response is not None:
-            response.close()
-
         if tft is not None:
             tft.fill(colors.BLACK)
             tft.text("Done.", 10, 10, colors.GREEN)
