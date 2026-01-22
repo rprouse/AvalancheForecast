@@ -32,7 +32,7 @@ class AvalancheForecastApplication:
         # Setting device time
         print("Setting device time via NTP...")
         self.y = self.tft.text("Setting device time via NTP...", 10, self.y, colors.GREEN)
-        self.sync_time()
+        self._sync_time()
 
         self.rtc = RTC()
 
