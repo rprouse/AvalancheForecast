@@ -3,53 +3,19 @@ import ntptime
 import urequests
 import os
 
-
+import colors
 from drivers.tft_spi import ILI9341, color565
 import fonts.tt7, fonts.tt14, fonts.tt24, fonts.tt32
 from drivers.xpt2046 import Touch
-from wifi import connect_wifi
-
+import pins
 from secrets import SSID, PASSWORD
-
-# Common colors
-WHITE = color565(0xFF, 0xFF, 0xFF)
-GRAY = color565(0xF8, 0xF8, 0xF8)
-BLACK = color565(0x00, 0x00, 0x00)
-GREEN = color565(0x00, 0xFF, 0x00)
-ALP = WHITE
-TLN = color565(0xC1, 0xD8, 0x31)
-BTL = color565(0x6E, 0xA4, 0x69)
-
-# Danger rating colors from the website
-DANGER_BG_COLORS = {
-    "low": color565(80, 184, 72),
-    "moderate": color565(255, 242, 0),
-    "considerable": color565(247, 148, 30),
-    "high": color565(237, 28, 36),
-    "extreme": color565(35, 31, 32)
-}
-
-DANGER_FG_COLORS = {
-    "low": BLACK,
-    "moderate": BLACK,
-    "considerable": BLACK,
-    "high": BLACK,
-    "extreme": WHITE
-}
+import wifi
 
 SCR_WIDTH = const(240)
 SCR_HEIGHT = const(360)
 SCR_ROT = const(2)
 CENTER_Y = int(SCR_WIDTH/2)
 CENTER_X = int(SCR_HEIGHT/2)
-
-TFT_CLK_PIN = const(6)
-TFT_MOSI_PIN = const(7)
-TFT_MISO_PIN = const(4)
-
-TFT_CS_PIN = const(13)
-TFT_RST_PIN = const(14)
-TFT_DC_PIN = const(15)
 
 def initialize_display():
     """
@@ -67,19 +33,19 @@ def initialize_display():
     spi = SPI(
         0,
         baudrate=40000000,
-        miso=Pin(TFT_MISO_PIN),
-        mosi=Pin(TFT_MOSI_PIN),
-        sck=Pin(TFT_CLK_PIN))
+        miso=Pin(pins.TFT_MISO_PIN),
+        mosi=Pin(pins.TFT_MOSI_PIN),
+        sck=Pin(pins.TFT_CLK_PIN))
     print(spi)
 
-    cs  = Pin(TFT_CS_PIN, Pin.OUT)
-    dc  = Pin(TFT_DC_PIN, Pin.OUT)
-    rst = Pin(TFT_RST_PIN, Pin.OUT)
+    cs  = Pin(pins.TFT_CS_PIN, Pin.OUT)
+    dc  = Pin(pins.TFT_DC_PIN, Pin.OUT)
+    rst = Pin(pins.TFT_RST_PIN, Pin.OUT)
 
     tft = ILI9341(spi, cs, dc, rst=rst, rotation=SCR_ROT, bgr=True, invert=False)
 
     tft.init()
-    tft.fill(BLACK)
+    tft.fill(colors.BLACK)
     return tft
 
 # --- NTP sync ---
@@ -104,33 +70,33 @@ def display_forecast(tft, today, y):
         int: The vertical pixel coordinate to continue drawing after this block.
     """
     tft.set_font(fonts.tt14)
-    tft.text(today['date']['display'], 10, y, GRAY)
+    tft.text(today['date']['display'], 10, y, colors.GRAY)
     tft.set_font(fonts.tt7)
 
     y = y + 18
     rating = today['ratings']['alp']['rating']['value']
-    bg_color = DANGER_BG_COLORS.get(rating, GRAY)
-    fg_color = DANGER_FG_COLORS.get(rating, BLACK)
-    tft.fill_rect(10, y, 100, 16, ALP)
-    tft.text("Alpine", 14, y + 4, BLACK)
+    bg_color = colors.DANGER_BG_COLORS.get(rating, colors.GRAY)
+    fg_color = colors.DANGER_FG_COLORS.get(rating, colors.BLACK)
+    tft.fill_rect(10, y, 100, 16, colors.ALP)
+    tft.text("Alpine", 14, y + 4, colors.BLACK)
     tft.fill_rect(112, y, 100, 16, bg_color)
     tft.text(today['ratings']['alp']['rating']['display'], 116,  y + 4, fg_color)
 
     y = y + 18
     rating = today['ratings']['tln']['rating']['value']
-    bg_color = DANGER_BG_COLORS.get(rating, GRAY)
-    fg_color = DANGER_FG_COLORS.get(rating, BLACK)
-    tft.fill_rect(10, y, 100, 16, TLN)
-    tft.text("Treeline", 14, y + 4, BLACK)
+    bg_color = colors.DANGER_BG_COLORS.get(rating, colors.GRAY)
+    fg_color = colors.DANGER_FG_COLORS.get(rating, colors.BLACK)
+    tft.fill_rect(10, y, 100, 16, colors.TLN)
+    tft.text("Treeline", 14, y + 4, colors.BLACK)
     tft.fill_rect(112, y, 100, 16, bg_color)
     tft.text(today['ratings']['tln']['rating']['display'], 116,  y + 4, fg_color)
 
     y = y + 18
     rating = today['ratings']['btl']['rating']['value']
-    bg_color = DANGER_BG_COLORS.get(rating, GRAY)
-    fg_color = DANGER_FG_COLORS.get(rating, BLACK)
-    tft.fill_rect(10, y, 100, 16, BTL)
-    tft.text("Below Treeline", 14, y + 4, BLACK)
+    bg_color = colors.DANGER_BG_COLORS.get(rating, colors.GRAY)
+    fg_color = colors.DANGER_FG_COLORS.get(rating, colors.BLACK)
+    tft.fill_rect(10, y, 100, 16, colors.BTL)
+    tft.text("Below Treeline", 14, y + 4, colors.BLACK)
     tft.fill_rect(112, y, 100, 16, bg_color)
     tft.text(today['ratings']['btl']['rating']['display'], 116,  y + 4, fg_color)
 
@@ -148,19 +114,19 @@ def main():
     tft = initialize_display()
 
     print("Initializing Touch...")
-    spi2 = SPI(1, baudrate=1000000, sck=Pin(10), mosi=Pin(11), miso=Pin(8))
+    spi2 = SPI(1, baudrate=1000000, sck=Pin(pins.TOUCH_CLK_PIN), mosi=Pin(pins.TOUCH_MOSI_PIN), miso=Pin(pins.TOUCH_MISO_PIN))
     # The Pico Breadboard Kit does not have the interrupt pin connected, so we
     # won't use it here, instead we will poll for touches
-    touch = Touch(spi2, cs=Pin(12), int_pin=Pin(0)) #, int_handler=touchscreen_press)
+    touch = Touch(spi2, cs=Pin(pins.TOUCH_CS_PIN))# , int_pin=Pin(pins.TOUCH_INT_PIN)), int_handler=touchscreen_press)
 
     print("Connecting to WiFi...")
-    tft.text("Connecting to WiFi...", 10, 10, GREEN)
+    tft.text("Connecting to WiFi...", 10, 10, colors.GREEN)
 
-    wlan = connect_wifi(SSID, PASSWORD, timeout_s=20, country="CA", verbose=True)
+    wlan = wifi.connect(SSID, PASSWORD, timeout_s=20, country="CA", verbose=True)
 
     # Setting device time
     print("Setting device time via NTP...")
-    tft.text("Setting device time via NTP...", 10, 22, GREEN)
+    tft.text("Setting device time via NTP...", 10, 22, colors.GREEN)
     sync_time()
 
     rtc = RTC()
@@ -169,16 +135,15 @@ def main():
     t = rtc.datetime()
     ts = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d} UTC".format(t[0], t[1], t[2], t[4], t[5], t[6])
     print(ts)
-    tft.text(ts, 10, 34, GREEN)
-
+    tft.text(ts, 10, 34, colors.GREEN)
     # Fetch avalanche forecast data from the Avalanche Canada API
     print("Getting Avalanche Forecast...")
-    tft.text("Getting Avalanche Forecast...", 10, 46, GREEN)
+    tft.text("Getting Avalanche Forecast...", 10, 46, colors.GREEN)
 
     response = None
     try:
         response = urequests.get("https://api.avalanche.ca/forecasts/en/products/point?lat=49.516324&long=-115.068756")
-        tft.fill(BLACK)
+        tft.fill(colors.BLACK)
         print("Response status:", response.status_code)
         if response.status_code == 200:
             print("Parsing forecast data...")
@@ -196,7 +161,7 @@ def main():
 
         else:
             tft.set_font(fonts.tt7)
-            tft.text("Failed to fetch forecast data", 10, 10, WHITE)
+            tft.text("Failed to fetch forecast data", 10, 10, colors.WHITE)
 
         print("Entering touch event loop.  Press Ctrl-C to exit.")
         while True:
@@ -223,15 +188,15 @@ def main():
         # Handle network or parsing errors
         print("Error fetching forecast data:", e)
         tft.set_font(fonts.tt7)
-        tft.text("Error fetching forecast data", 10, 10, WHITE)
+        tft.text("Error fetching forecast data", 10, 10, colors.WHITE)
 
     finally:
         if response is not None:
             response.close()
 
         if tft is not None:
-            tft.fill(BLACK)
-            tft.text("Done.", 10, 10, GREEN)
+            tft.fill(colors.BLACK)
+            tft.text("Done.", 10, 10, colors.GREEN)
 
 if __name__ == "__main__":
     main()

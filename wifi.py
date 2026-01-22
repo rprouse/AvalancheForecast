@@ -14,7 +14,7 @@ _STATUS_TEXT = {
 def _status_text(code: int) -> str:
     return _STATUS_TEXT.get(code, f"UNKNOWN({code})")
 
-def connect_wifi(
+def connect(
     ssid: str,
     password: str,
     *,
