@@ -1,4 +1,3 @@
-import colors
 from drivers.tft_spi import ILI9341, TFTBase
 from machine import Pin, SPI
 import pins

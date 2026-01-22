@@ -388,6 +388,9 @@ class TFTBase:
             color (int): Foreground color (RGB565) for glyph pixels.
             bg (int or None): Background color (RGB565) to fill behind glyphs. If None, background is left transparent.
             spacing (int): Additional horizontal spacing in pixels between consecutive characters.
+
+        Returns:
+            int: The vertical pixel coordinate after rendering the text (y position plus font height plus
         """
         font_height = self._font.height()
         cx = x
@@ -398,6 +401,8 @@ class TFTBase:
                 continue
             char_width = self._draw_char(ch, cx, y, color, bg)
             cx += char_width + spacing
+
+        return y + font_height + 2
 
     def _draw_char(self, ch, x, y, color, bg):
         # Get glyph data and width from font

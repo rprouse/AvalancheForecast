@@ -1,21 +1,22 @@
-from forecast import AvalancheForecast
-from machine import Pin, RTC, SPI
-import ntptime
-import os
-
 import colors
 import display
-from drivers.tft_spi import ILI9341
 import fonts.tt7
-from drivers.xpt2046 import Touch
+import ntptime
+import os
 import pins
-from secrets import SSID, PASSWORD
 import wifi
+
+from drivers.xpt2046 import Touch
+from forecast import AvalancheForecast
+from machine import Pin, RTC, SPI
+from secrets import SSID, PASSWORD
 
 class AvalancheForecastApplication:
     def __init__(self):
         print(os.uname()) # type: ignore
         self.tft = display.initialize()
+
+        self.y = 10 # Initial vertical position for drawing
 
         print("Initializing Touch...")
         self.spi2 = SPI(1, baudrate=1000000, sck=Pin(pins.TOUCH_CLK_PIN), mosi=Pin(pins.TOUCH_MOSI_PIN), miso=Pin(pins.TOUCH_MISO_PIN))
@@ -24,13 +25,13 @@ class AvalancheForecastApplication:
         self.touch = Touch(self.spi2, cs=Pin(pins.TOUCH_CS_PIN))# , int_pin=Pin(pins.TOUCH_INT_PIN)), int_handler=touchscreen_press)
 
         print("Connecting to WiFi...")
-        self.tft.text("Connecting to WiFi...", 10, 10, colors.GREEN)
+        self.y = self.tft.text("Connecting to WiFi...", 10, self.y, colors.GREEN)
 
         wlan = wifi.connect(SSID, PASSWORD, timeout_s=20, country="CA", verbose=True)
 
         # Setting device time
         print("Setting device time via NTP...")
-        self.tft.text("Setting device time via NTP...", 10, 22, colors.GREEN)
+        self.y = self.tft.text("Setting device time via NTP...", 10, self.y, colors.GREEN)
         self.sync_time()
 
         self.rtc = RTC()
@@ -39,8 +40,7 @@ class AvalancheForecastApplication:
         t = self.rtc.datetime()
         ts = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d} UTC".format(t[0], t[1], t[2], t[4], t[5], t[6])
         print(ts)
-        self.tft.text(ts, 10, 34, colors.GREEN)
-
+        self.y = self.tft.text(ts, 10, self.y, colors.GREEN)
         self.forecast = AvalancheForecast(self.tft)
 
     # --- NTP sync ---
@@ -59,7 +59,7 @@ class AvalancheForecastApplication:
     def get_forecast(self):
         # Fetch avalanche forecast data from the Avalanche Canada API
         print("Getting Avalanche Forecast...")
-        self.tft.text("Getting Avalanche Forecast...", 10, 46, colors.GREEN)
+        self.y = self.tft.text("Getting Avalanche Forecast...", 10, self.y, colors.GREEN)
 
         self.data = self.forecast.get_forecast(49.516324, -115.068756)  # Example: Fernie, BC
         self.tft.erase()
@@ -71,7 +71,8 @@ class AvalancheForecastApplication:
         # display.print(title + "\n")
 
         # Display danger ratings
-        self.y = self.forecast.display_forecast(self.data, 10)
+        self.y = 10;
+        self.y = self.forecast.display_forecast(self.data, self.y)
 
     def run(self):
         try:
@@ -94,8 +95,8 @@ class AvalancheForecastApplication:
         except KeyboardInterrupt:
             print("\nCtrl-C pressed.  Cleaning up and exiting...")
             if self.tft is not None:
-                self.tft.fill(colors.BLACK)
-                self.tft.text("Done.", 10, 10, colors.GREEN)
+                self.tft.erase()
+                self.y = self.tft.text("Done.", 10, 10, colors.GREEN)
             return
 
     def error(self, msg: str):
@@ -103,7 +104,7 @@ class AvalancheForecastApplication:
         print("Error:", msg)
         self.tft.erase()
         self.tft.set_font(fonts.tt7)
-        self.tft.text(msg, 10, 10, colors.RED)
+        self.y = self.tft.text(msg, 10, 10, colors.RED)
 
 
 def main():
