@@ -55,7 +55,8 @@ def initialize_display():
     """
     Initialize the ILI9341 TFT display and clear the screen to black.
 
-    Configures the SPI bus and control pins, instantiates and initializes the ILI9341 display driver, and clears the display.
+    Configures the SPI bus and control pins, instantiates and initializes the
+    ILI9341 display driver, and clears the display.
 
     Side effects:
         Prints the configured SPI object to the console.
@@ -90,11 +91,13 @@ def sync_time():
 
 def display_forecast(tft, today, y):
     """
-    Render the forecast date and three danger-rating rows (Alpine, Treeline, Below Treeline) onto the provided TFT display and return the next vertical drawing position.
+    Render the forecast date and three danger-rating rows (Alpine, Treeline, Below
+    Treeline) onto the provided TFT display and return the next vertical drawing position.
 
     Parameters:
         tft: TFT display instance used for drawing (must support text, set_font, fill_rect).
-        today (dict): Forecast data for a single day; expected to contain 'date'->'display' and 'ratings'->{'alp','tln','btl'} with each having 'rating'->{'value','display'}.
+        today (dict): Forecast data for a single day; expected to contain 'date'->'display'
+        and 'ratings'->{'alp','tln','btl'} with each having 'rating'->{'value','display'}.
         y (int): Starting vertical pixel coordinate for rendering.
 
     Returns:
@@ -146,7 +149,8 @@ def main():
 
     print("Initializing Touch...")
     spi2 = SPI(1, baudrate=1000000, sck=Pin(10), mosi=Pin(11), miso=Pin(8))
-    # The Pico Breadboard Kit does not have the interrupt pin connected, so we won't use it here, instead we will poll for touches
+    # The Pico Breadboard Kit does not have the interrupt pin connected, so we
+    # won't use it here, instead we will poll for touches
     touch = Touch(spi2, cs=Pin(12), int_pin=Pin(0)) #, int_handler=touchscreen_press)
 
     print("Connecting to WiFi...")
@@ -163,14 +167,9 @@ def main():
 
     # RTC returns (year, month, day, weekday, hour, minute, second, subseconds)
     t = rtc.datetime()
-    print(
-        "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d} UTC".format(
-            t[0], t[1], t[2], t[4], t[5], t[6]
-        )
-    )
-    tft.text("{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d} UTC".format(
-            t[0], t[1], t[2], t[4], t[5], t[6]
-        ), 10, 34, GREEN)
+    ts = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d} UTC".format(t[0], t[1], t[2], t[4], t[5], t[6])
+    print(ts)
+    tft.text(ts, 10, 34, GREEN)
 
     # Fetch avalanche forecast data from the Avalanche Canada API
     print("Getting Avalanche Forecast...")
