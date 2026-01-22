@@ -17,7 +17,11 @@ PASSWORD = ""
 
 ## ILI9341 Display
 
-The code for driving the [ILI9341(https://www.lcdwiki.com/2.8inch_SPI_Module_ILI9341_SKU%3AMSP2807)] Touch Display is from [rdagger/micropython_ili9341](https://github.com/rdagger/micropython-ili9341).
+The code for driving multiple touch displays like,
+
+- [320x240 2.8" SPI Module ILI9341](https://www.lcdwiki.com/2.8inch_SPI_Module_ILI9341_SKU%3AMSP2807)
+- Possibly the [480x320 3.5" SPI Module ILI9488](https://www.lcdwiki.com/3.5inch_SPI_Module_ILI9488_SKU%3AMSP3520)
+- And the [480x320 4.0" SPI Module ST7796](https://www.lcdwiki.com/4.0inch_SPI_Module_ST7796)
 
 I am using the following pins based on the [Pico Breadboard Kit](https://wiki.52pi.com/index.php?title=EP-0164) with [Example Code](https://github.com/geeekpi/picoBDK). I may switch to their driver.
 
